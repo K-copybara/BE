@@ -1,66 +1,74 @@
 plugins {
-    id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
-}
-
-group = 'org.example'
-version = '0.0.1-SNAPSHOT'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+    id 'java'
 }
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.2'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+subprojects {
+    group = 'com.example'
+    version = '0.0.1-SNAPSHOT'
+    sourceCompatibility = '21'
 
-//    //스프링 시큐리티를 사용하기 위한 스타터 추가
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
-//    //스프링 시큐리티를 테스트하기 위한 의존성 추가
-//    testImplementation 'org.springframework.security:spring-security-test'
-//    //jwt
-//    implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // 핵심 JWT 인터페이스 & 빌더 API
-//    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5' // 실제 JWT 구현체
-//    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JWT를 JSON으로 직렬화/역직렬화 하는데 사용
-//    // Redis
-//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java-test-fixtures'
 
-    //openapitools 설치 - jsonNullable
-    implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+    repositories {
+        mavenCentral()
+    }
 
-//    // querydsl
-//    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-//    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-//    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-//    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    ext {
+        set('springCloudVersion', "2023.0.0")
+    }
 
-//    //Spring Actuator
-//    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-//
-//    //Prometheus
-//    implementation 'io.micrometer:micrometer-registry-prometheus'
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+
+    bootJar { enabled = false }
+    jar { enabled = true }
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
+// 각 서비스는 global + testFixtures(global) 의존
+project(':alarm-service') {
+    dependencies {
+        implementation project(':global')
+        implementation(testFixtures(project(":global")))
+        implementation 'org.springframework.kafka:spring-kafka'
+    }
 }
+
+project(':chatbot-service') {
+    dependencies {
+        implementation project(':global')
+        implementation(testFixtures(project(":global")))
+        implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    }
+}
+
+project(':order-service') {
+    dependencies {
+        implementation project(':global')
+        implementation(testFixtures(project(":global")))
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.2'
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    }
+}
+
+project(':shop-service') {
+    dependencies {
+        implementation project(':global')
+        implementation(testFixtures(project(":global")))
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.2'
+    }
+}
+
