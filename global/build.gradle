@@ -8,12 +8,12 @@ dependencies {
     // 공통
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // testFixture 필요 의존성 추가
     testFixturesImplementation 'org.springframework.boot:spring-boot-starter-test'
     testFixturesImplementation 'io.rest-assured:rest-assured:5.3.2'
     testFixturesImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    testFixturesImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
 
     // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
