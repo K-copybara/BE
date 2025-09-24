@@ -23,6 +23,12 @@ public class Store {
     @Column(name = "shop_name", nullable = false, length = 100)
     private String shopName;
 
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
     @Column(nullable = false, length = 30)
     private String phone;
 

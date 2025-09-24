@@ -13,9 +13,24 @@ dependencies {
     // 공통(global 모듈)
     implementation project(':global')
 
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.2'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
     // JPA + MySQL
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+
+    //스프링 시큐리티를 사용하기 위한 스타터 추가
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    //스프링 시큐리티를 테스트하기 위한 의존성 추가
+    testImplementation 'org.springframework.security:spring-security-test'
+    //jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // 핵심 JWT 인터페이스 & 빌더 API
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5' // 실제 JWT 구현체
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JWT를 JSON으로 직렬화/역직렬화 하는데 사용
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
