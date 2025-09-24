@@ -68,7 +68,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers("/auth/**") // 로그인, 회원가입은 열어주기
+                        .requestMatchers("/api/merchant/auth/**") // 로그인, 회원가입은 열어주기
                         .permitAll()
                         .anyRequest().authenticated()
                 )

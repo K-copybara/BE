@@ -42,7 +42,7 @@ public class Store {
     @Column(columnDefinition = "TEXT")
     private String notice;
 
-    @Column(name = "business_hours", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "business_hours", columnDefinition = "TEXT")
     private String businessHours;
 
     private LocalDateTime createdAt;
