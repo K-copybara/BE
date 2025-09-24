@@ -10,6 +10,13 @@ repositories {
 }
 
 dependencies {
+    // 공통(global 모듈)
+    implementation project(':global')
+
+    // JPA + MySQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
