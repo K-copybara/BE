@@ -50,4 +50,8 @@ public class Store {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuCategory> categories;
+
+    public void deactivate() {
+        this.status = false;
+    }
 }
