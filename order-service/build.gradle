@@ -3,13 +3,33 @@ plugins {
 }
 
 group = 'org.example'
-version = '0.0.1-SNAPSHOT'
+version = 'unspecified'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // 공통(global 모듈)
+    implementation project(':global')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.2'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // JPA + MySQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+
+    // 타임리프
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // 토스 페이먼츠 승인 api 요청하고 받은 json data 파싱
+    implementation 'com.googlecode.json-simple:json-simple:1.1'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
