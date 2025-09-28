@@ -32,9 +32,8 @@ public class TossPayment {
     @Column(name = "toss_payment_key", nullable = false, length = 255)
     private String tossPaymentKey;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "toss_payment_method", nullable = false)
-    private TossPaymentMethod tossPaymentMethod;
+    private String tossPaymentMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "toss_payment_status", nullable = false)

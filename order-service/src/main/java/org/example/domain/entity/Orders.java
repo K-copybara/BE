@@ -21,6 +21,9 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "order_id", nullable = false, unique = true, length = 100)
+    private String orderId;  // 토스와 통신하는 주문번호(UUID)
+
     @Column(name = "table_id", nullable = false)
     private Long tableId;
 

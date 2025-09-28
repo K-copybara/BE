@@ -1,5 +1,5 @@
 package org.example.domain.entity;
 
 public enum TossPaymentMethod {
-    CARD, TRANSFER, VIRTUAL_ACCOUNT, MOBILE, EASY_PAY
+    CARD, VIRTUAL_ACCOUNT, EASY_PAY, TRANSFER, MOBILE_PHONE, UNKNOWN
 }
