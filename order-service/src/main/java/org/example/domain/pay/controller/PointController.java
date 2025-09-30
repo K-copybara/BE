@@ -62,35 +62,3 @@ public class PointController {
     }
 
 }
-
-//public class PointController {
-//
-//    @Value("${payment.client.key}")
-//    private String clientKey;
-//
-//    private final PaymentService paymentService;
-//
-//    /**
-//     * 결제 페이지 호출 (checkout.html 렌더링)
-//     * 예: http://localhost:8080/points/charge?userId=1&amount=10000
-//     */
-//    @GetMapping("/points/charge")
-//    public String getPaymentPage(@RequestParam Long userId,
-//                                 @RequestParam int amount,
-//                                 Model model) {
-//
-//        // 주문 고유 ID 생성
-//        String orderId = UUID.randomUUID().toString().substring(0, 12);
-//
-//        // 모델에 데이터 담기 (checkout.html에서 JS로 사용)
-//        model.addAttribute("userId", userId);
-//        model.addAttribute("clientKey", clientKey);
-//        model.addAttribute("amount", amount);
-//        model.addAttribute("orderId", orderId);
-//
-//        // 결제 임시 저장 (DB/세션에 orderId, 금액 저장)
-//        paymentService.createPayment(orderId, userId, amount);
-//
-//        return "checkout"; // → templates/checkout.html 렌더링
-//    }
-//}
