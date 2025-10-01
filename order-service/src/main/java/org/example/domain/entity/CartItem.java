@@ -27,4 +27,9 @@ public class CartItem {
 
     @Column(nullable = false)
     private Long quantity;
+
+    // 수량 변경 메서드
+    public void updateQuantity(Long newQuantity) {
+        this.quantity = newQuantity;
+    }
 }
