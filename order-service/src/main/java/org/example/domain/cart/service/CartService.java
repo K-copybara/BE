@@ -111,4 +111,23 @@ public class CartService {
                 });
     }
 
+    // 장바구니 아이템 수량 수정
+    @Transactional
+    public void updateCartItem(Long cartItemId, int newAmount) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
+
+        cartItem.updateQuantity((long) newAmount);
+        cartItemRepository.save(cartItem);
+    }
+
+    // 장바구니 아이템 삭제
+    @Transactional
+    public void deleteCartItem(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
+
+        cartItemRepository.delete(cartItem);
+    }
+
 }
