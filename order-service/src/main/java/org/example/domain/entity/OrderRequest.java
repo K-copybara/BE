@@ -18,5 +18,10 @@ public class OrderRequest {
 
     @OneToMany(mappedBy = "orderRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderRequestItem> items;
+
+    public void addItem(OrderRequestItem item) {
+        items.add(item);
+        item.setOrderRequest(this);
+    }
 }
 
