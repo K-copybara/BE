@@ -47,4 +47,13 @@ public class TossPayment {
 
     @Column(name = "total_amount", nullable = false)
     private Long totalAmount;
+
+    private String cancelReason;
+
+    // 취소 상태 변경
+    public void cancel(String cancelReason) {
+        this.tossPaymentStatus = TossPaymentStatus.CANCELED;
+        this.cancelReason = cancelReason;
+    }
+
 }

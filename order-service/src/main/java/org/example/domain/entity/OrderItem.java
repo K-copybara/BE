@@ -32,4 +32,8 @@ public class OrderItem {
 
     @Column(name = "total_menu_price", nullable = false)
     private Long totalMenuPrice = 0L;
+
+    public void setOrders(Orders orders) {
+        this.orders = orders;
+    }
 }

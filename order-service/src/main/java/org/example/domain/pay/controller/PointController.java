@@ -1,10 +1,15 @@
 package org.example.domain.pay.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.entity.Orders;
+import org.example.domain.pay.dto.request.CancelPaymentRequest;
 import org.example.domain.pay.dto.request.ConfirmPaymentRequest;
+import org.example.domain.pay.dto.request.PreparePaymentRequest;
 import org.example.domain.pay.dto.response.ChargeResponse;
+import org.example.domain.pay.dto.response.PaymentPrepareResponse;
+import org.example.domain.pay.repository.OrdersRepository;
 import org.example.domain.pay.service.PaymentService;
-import org.example.domain.pay.service.PointService;
+import org.example.dto.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,43 +27,25 @@ public class PointController {
     @Value("${payment.client.key}")
     private String CLIENT_KEY;
 
-    private final PaymentService paymentService;
-    private final PointService pointService;
+    private final OrdersRepository ordersRepository;
 
     /**
      * 결제 페이지 호출 (checkout.html 렌더링)
-     * 예: http://localhost:8080/v1/payments?amount=1
+     * 예: http://localhost:8080/v1/payments/{orderId}
      */
-    @GetMapping
-    public String getPaymentPage(@RequestParam int amount, Model model) {
-        // 주문 고유 ID 생성
-        String orderId = UUID.randomUUID().toString().substring(0, 12);
+    @GetMapping("/{orderId}")
+    public String getPaymentPage(@PathVariable String orderId, Model model) {
+        // DB에서 orderId 조회
+        Orders orders = ordersRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        // 고객을 식별할 랜덤 키 (비회원이라 DB User 없음)
-        long customerKey = new Random().nextLong();
-      //  String customerKey = UUID.randomUUID().toString();
-
-        // 모델에 데이터 담기 (checkout.html에서 JS로 사용)
+        // checkout.html에서 사용할 데이터 세팅
         model.addAttribute("clientKey", CLIENT_KEY);
-        model.addAttribute("amount", amount);
-        model.addAttribute("orderId", orderId);
-        model.addAttribute("customerKey", customerKey);
-
-        // DB/세션에 orderId, amount 저장 (비회원 결제에도 무조건 필요)
-        paymentService.createPayment(orderId, customerKey, amount);
+        model.addAttribute("amount", orders.getTotalPrice());
+        model.addAttribute("orderId", orders.getOrderId());
+        model.addAttribute("customerKey", orders.getCustomerKey());
 
         return "payment/checkout"; // → templates/payment/checkout.html
-    }
-
-    /**
-     * 결제 승인
-     * 결제 수단 인증 후 success.html 에서 호출하는 api
-     */
-    @PostMapping("/confirm")
-    @ResponseBody
-    public ChargeResponse confirmPayment(@RequestBody ConfirmPaymentRequest confirmPaymentRequest) throws IOException {
-        // PointService 에 ConfirmPaymentRequest 넘겨주도록 수정
-        return pointService.confirmPayment(confirmPaymentRequest);
     }
 
 }

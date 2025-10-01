@@ -1,18 +1,16 @@
 package org.example.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "orders") // 예약어라 백틱 필요
+@Table(name = "orders")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Orders {
@@ -27,11 +25,14 @@ public class Orders {
     @Column(name = "table_id", nullable = false)
     private Long tableId;
 
-    @Column(name = "customer_key", nullable = false)
-    private Long customerKey;
+    @Column(name = "store_id", nullable = false)
+    private Long storeId;
 
-    @Column(nullable = false, length = 255)
-    private String request;
+    @Column(name = "customer_key", nullable = false, length = 120)
+    private String customerKey;
+
+    @Column(length = 255)
+    private String requestNote;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false)
@@ -43,11 +44,22 @@ public class Orders {
     @Column(name = "total_price", nullable = false)
     private Long totalPrice = 0L;
 
-    // Order 1 : N OrderItem
+    @Builder.Default
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems = new ArrayList<>();
 
-    // Order 1 : N TossPayment
+    @Builder.Default
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TossPayment> tossPayments;
+    private List<TossPayment> tossPayments = new ArrayList<>();
+
+    // 취소 상태 변경
+    public void cancel() {
+        this.orderStatus = OrderStatus.CANCELED;
+    }
+
+    // orderitem 추가
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrders(this); // 양방향 동기화
+    }
 }
