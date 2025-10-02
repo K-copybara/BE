@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderRequestDto {
     private Long storeId;
+    private Long tableId;
     private String customerKey;
     private String requestNote; // optional
     private List<OrderRequestItemDto> items;

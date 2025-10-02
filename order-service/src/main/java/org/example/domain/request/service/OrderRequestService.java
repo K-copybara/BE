@@ -22,6 +22,7 @@ public class OrderRequestService {
         // 1. OrderRequest 생성
         OrderRequest orderRequest = OrderRequest.builder()
                 .storeId(dto.getStoreId())
+                .tableId(dto.getTableId())
                 .customerKey(dto.getCustomerKey())
                 .requestNote(dto.getRequestNote())
                 .build();
