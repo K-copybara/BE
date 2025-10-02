@@ -44,3 +44,6 @@ src/main/resources/*.yml
 *.crt
 *.p12
 src/main/resources/certs/*
+
+# 카프카 docker compose
+docker-compose.yml

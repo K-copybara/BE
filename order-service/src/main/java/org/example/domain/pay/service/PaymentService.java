@@ -110,7 +110,7 @@ public class PaymentService {
                     .totalMenuPrice((long) dto.getAmount() * dto.getPrice())
                     .build();
 
-            orders.addOrderItem(orderItem); // 🔥 양방향 관계 유지
+            orders.addOrderItem(orderItem); // 양방향 관계 유지
         });
 
         // 7. 저장 (cascade 때문에 orderItems도 함께 저장됨)

@@ -1,0 +1,47 @@
+package org.example.domain.request.service;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.example.domain.entity.OrderRequest;
+import org.example.domain.entity.OrderRequestItem;
+import org.example.domain.request.dto.request.OrderRequestDto;
+import org.example.domain.request.dto.response.OrderRequestResponse;
+import org.example.domain.request.repository.OrderRequestRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OrderRequestService {
+
+    private final OrderRequestRepository orderRequestRepository;
+
+    @Transactional
+    public OrderRequestResponse createOrderRequest(OrderRequestDto dto) {
+        // 1. OrderRequest 생성
+        OrderRequest orderRequest = OrderRequest.builder()
+                .storeId(dto.getStoreId())
+                .customerKey(dto.getCustomerKey())
+                .requestNote(dto.getRequestNote())
+                .build();
+
+        // 2. OrderRequestItem 생성
+        if (dto.getItems() != null) {
+            List<OrderRequestItem> items = dto.getItems().stream()
+                    .map(i -> OrderRequestItem.builder()
+                            .menuId(i.getMenuId())
+                            .amount(i.getAmount())
+                            .orderRequest(orderRequest)
+                            .build())
+                    .toList();
+            orderRequest.getItems().addAll(items);
+        }
+
+        OrderRequest saved = orderRequestRepository.save(orderRequest);
+
+        // 3. 응답 변환
+        return OrderRequestResponse.fromEntity(saved);
+    }
+}
+
