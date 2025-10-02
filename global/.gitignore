@@ -38,6 +38,7 @@ out/
 
 ### application*.properties ###
 src/main/resources/*.properties
+src/main/resources/*.yml
 
 # SSL 인증서, Truststore
 *.crt
