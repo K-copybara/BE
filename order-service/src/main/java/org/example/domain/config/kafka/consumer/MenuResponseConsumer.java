@@ -23,7 +23,8 @@ public class MenuResponseConsumer {
                 .map(m -> new MenuDto(
                         ((Number) m.get("menuId")).longValue(),
                         (String) m.get("menuName"),
-                        ((Number) m.get("menuPrice")).intValue()
+                        ((Number) m.get("menuPrice")).intValue(),
+                        (String) m.get("menuCategory")
                 ))
                 .toList();
 

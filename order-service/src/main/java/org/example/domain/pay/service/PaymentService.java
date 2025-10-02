@@ -80,6 +80,7 @@ public class PaymentService {
                             .cartItemId(item.getId())
                             .menuId(menuDto.getMenuId())
                             .menuName(menuDto.getMenuName())
+                            .menuCategory(menuDto.getMenuCategory())
                             .amount(item.getQuantity().intValue())
                             .price(menuDto.getMenuPrice())
                             .build();
@@ -106,6 +107,9 @@ public class PaymentService {
         items.forEach(dto -> {
             OrderItem orderItem = OrderItem.builder()
                     .menuId(dto.getMenuId())
+                    .menuName(dto.getMenuName())
+                    .menuPrice((long) dto.getPrice())
+                    .menuCategory(dto.getMenuCategory())
                     .orderQuantity((long) dto.getAmount())
                     .totalMenuPrice((long) dto.getAmount() * dto.getPrice())
                     .build();

@@ -22,6 +22,7 @@ public class PaymentPrepareResponse {
         private Long cartItemId;
         private Long menuId;
         private String menuName;
+        private String menuCategory;
         private int amount;
         private int price;
     }

@@ -32,6 +32,7 @@ public class OrderRequestService {
             List<OrderRequestItem> items = dto.getItems().stream()
                     .map(i -> OrderRequestItem.builder()
                             .menuId(i.getMenuId())
+                            .menuName(i.getMenuName())
                             .amount(i.getAmount())
                             .orderRequest(orderRequest)
                             .build())

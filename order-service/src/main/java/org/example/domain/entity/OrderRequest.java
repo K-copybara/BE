@@ -22,6 +22,11 @@ public class OrderRequest {
 
     private String requestNote;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_status", nullable = false)
+    @Builder.Default
+    private OrderStatus requestStatus = OrderStatus.PENDING;
+
     @OneToMany(mappedBy = "orderRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderRequestItem> items = new ArrayList<>();

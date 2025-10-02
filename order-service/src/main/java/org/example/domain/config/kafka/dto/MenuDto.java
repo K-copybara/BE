@@ -9,4 +9,5 @@ public class MenuDto {
     private Long menuId;
     private String menuName;
     private Integer menuPrice;
+    private String menuCategory;
 }

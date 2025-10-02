@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderRequestItemDto {
     private Long menuId;
+    private String menuName;
     private Long amount;
 }
