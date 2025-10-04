@@ -1,4 +1,5 @@
-package org.example.domain.request.dto.request;
+package org.example.domain.order.dto.response;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderRequestItemDto {
+public class MerchantOrderItemDto {
     private Long menuId;
     private String menuName;
     private Long amount;

@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,12 +30,15 @@ public class MenuRequestConsumer {
                 .map(id -> ((Number) id).longValue())
                 .toList();
 
-        var menus = menuRepository.findAllById(menuIds).stream()
-                .map(menu -> Map.of(
-                        "menuId", menu.getId(),
-                        "menuName", menu.getMenuName(),
-                        "menuPrice", menu.getMenuPrice()
-                ))
+        var menus = menuRepository.findAllByIdWithCategory(menuIds).stream()
+                .map(menu -> {
+                    Map<String, Object> dto = new HashMap<>();
+                    dto.put("menuId", menu.getId());
+                    dto.put("menuName", menu.getMenuName());
+                    dto.put("menuPrice", menu.getMenuPrice());
+                    dto.put("menuCategory", menu.getCategory().getCategoryName());
+                    return dto;
+                })
                 .toList();
 
         Map<String, Object> response = Map.of(

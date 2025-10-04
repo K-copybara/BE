@@ -1,15 +1,17 @@
 package org.example.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "order_request")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@AllArgsConstructor
 @Builder
 public class OrderRequest {
     @Id
@@ -22,13 +24,18 @@ public class OrderRequest {
 
     private String requestNote;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_status", nullable = false)
+    @Builder.Default
+    private OrderStatus requestStatus = OrderStatus.PENDING;
+
     @OneToMany(mappedBy = "orderRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderRequestItem> items = new ArrayList<>();
 
-    public void addItem(OrderRequestItem item) {
-        items.add(item);
-        item.setOrderRequest(this);
-    }
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
 }
 

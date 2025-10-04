@@ -27,6 +27,15 @@ public class OrderItem {
     @Column(name = "menu_id", nullable = false)
     private Long menuId;
 
+    @Column(name = "menu_name", nullable = false, length = 255)
+    private String menuName;
+
+    @Column(name = "menu_price", nullable = false)
+    private Long menuPrice;
+
+    @Column(name = "menu_category", nullable = false, length = 100)
+    private String menuCategory;
+
     @Column(name = "order_quantity", nullable = false)
     private Long orderQuantity;
 
