@@ -9,6 +9,7 @@ import org.example.domain.request.dto.response.OrderRequestResponse;
 import org.example.domain.request.repository.OrderRequestRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,6 +26,7 @@ public class OrderRequestService {
                 .tableId(dto.getTableId())
                 .customerKey(dto.getCustomerKey())
                 .requestNote(dto.getRequestNote())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         // 2. OrderRequestItem 생성

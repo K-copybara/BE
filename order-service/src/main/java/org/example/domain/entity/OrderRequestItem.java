@@ -1,12 +1,13 @@
 package org.example.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Entity
 @Table(name = "order_request_item")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Builder
 public class OrderRequestItem {
     @Id
@@ -22,9 +23,5 @@ public class OrderRequestItem {
     private Long amount;
 
     // 요청 사항 메뉴는 모두 0원이므로 price 필요없음
-
-    public void setOrderRequest(OrderRequest orderRequest) {
-        this.orderRequest = orderRequest;
-    }
 }
 

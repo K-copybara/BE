@@ -13,7 +13,7 @@ import org.example.domain.pay.dto.request.PreparePaymentRequest;
 import org.example.domain.pay.dto.response.ChargeResponse;
 import org.example.domain.pay.dto.response.PaymentPrepareResponse;
 import org.example.domain.cart.repository.CartRepository;
-import org.example.domain.pay.repository.OrdersRepository;
+import org.example.domain.order.repository.OrdersRepository;
 import org.example.domain.pay.repository.TossPaymentRepository;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

@@ -2,22 +2,11 @@ package org.example.domain.pay.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.domain.entity.Orders;
-import org.example.domain.pay.dto.request.CancelPaymentRequest;
-import org.example.domain.pay.dto.request.ConfirmPaymentRequest;
-import org.example.domain.pay.dto.request.PreparePaymentRequest;
-import org.example.domain.pay.dto.response.ChargeResponse;
-import org.example.domain.pay.dto.response.PaymentPrepareResponse;
-import org.example.domain.pay.repository.OrdersRepository;
-import org.example.domain.pay.service.PaymentService;
-import org.example.dto.Response;
+import org.example.domain.order.repository.OrdersRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.Random;
-import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
