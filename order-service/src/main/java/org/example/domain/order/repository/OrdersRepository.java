@@ -1,6 +1,7 @@
 package org.example.domain.order.repository;
 
 
+import org.example.domain.entity.OrderStatus;
 import org.example.domain.entity.Orders;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,13 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
             @Param("storeId") Long storeId,
             @Param("customerKey") String customerKey
     );
+
+    // 사장 주문내역 조회
+
+    @Query("SELECT DISTINCT o FROM Orders o " +
+            "LEFT JOIN FETCH o.orderItems " +
+            "WHERE o.storeId = :storeId AND o.orderStatus = :status " +
+            "ORDER BY o.createdAt DESC")
+    List<Orders> findOrdersByStoreAndStatus(@Param("storeId") Long storeId,
+                                            @Param("status") OrderStatus status);
 }
