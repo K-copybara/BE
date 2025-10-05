@@ -2,6 +2,7 @@ package org.example.domain.stats.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.domain.stats.dto.response.DailySalesDto;
+import org.example.domain.stats.dto.response.DailySalesResponse;
 import org.example.domain.stats.dto.response.WeekdaySalesResponse;
 import org.example.domain.stats.service.StatisticsService;
 import org.example.dto.Response;
@@ -37,5 +38,16 @@ public class StatisticsController {
     ) {
         List<WeekdaySalesResponse> data = statisticsService.getWeekdaySales(month, storeId);
         return Response.success("월별 요일별 매출 조회 성공", data);
+    }
+
+
+    // 일별 매출, 주문 건수
+    @GetMapping("/daily/order")
+    public Response<DailySalesResponse> getDailySales(
+            @RequestParam String date,
+            @RequestParam(required = false) Long storeId // 나중에 토큰에서 추출 가능
+    ) {
+        DailySalesResponse data = statisticsService.getDailySales(date, storeId);
+        return Response.success("일별 매출 및 주문 건수 조회 성공", data);
     }
 }

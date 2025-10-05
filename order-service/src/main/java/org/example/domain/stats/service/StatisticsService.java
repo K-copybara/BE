@@ -5,6 +5,7 @@ import org.example.domain.entity.OrderStatus;
 import org.example.domain.entity.Orders;
 import org.example.domain.order.repository.OrdersRepository;
 import org.example.domain.stats.dto.response.DailySalesDto;
+import org.example.domain.stats.dto.response.DailySalesResponse;
 import org.example.domain.stats.dto.response.WeekdaySalesResponse;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,5 +83,33 @@ public class StatisticsService {
         return Arrays.stream(DayOfWeek.values())
                 .map(day -> new WeekdaySalesResponse(day.name(), weekdaySales.get(day)))
                 .toList();
+    }
+
+    // 일별 매출, 주문 건수
+    @Transactional(readOnly = true)
+    public DailySalesResponse getDailySales(String date, Long storeId) {
+        // 요청 날짜 파싱
+        LocalDate targetDate = LocalDate.parse(date);
+
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay();
+
+        // 해당 날짜의 완료된 주문 조회
+        List<Orders> completedOrders = ordersRepository.findByStoreIdAndOrderStatusAndCreatedAtBetween(
+                storeId,
+                OrderStatus.COMPLETED,
+                startOfDay,
+                endOfDay
+        );
+
+        // 총 매출과 주문 건수 계산
+        long totalSales = completedOrders.stream()
+                .mapToLong(Orders::getTotalPrice)
+                .sum();
+
+        long orderCount = completedOrders.size();
+
+        // 결과 반환
+        return new DailySalesResponse(date, totalSales, orderCount);
     }
 }
