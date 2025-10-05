@@ -37,5 +37,13 @@ public class OrderRequest {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    // 요청 완료
+    public void complete() {
+        if (this.requestStatus == OrderStatus.COMPLETED) {
+            throw new IllegalStateException("이미 완료된 요청입니다.");
+        }
+        this.requestStatus = OrderStatus.COMPLETED;
+    }
+
 }
 

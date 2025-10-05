@@ -57,5 +57,14 @@ public class OrderRequestService {
                 .map(OrderRequestMerchantResponse::from)
                 .toList();
     }
+
+    // 사장 요청 완료
+    @Transactional
+    public void completeRequest(Long requestId) {
+        OrderRequest request = orderRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        request.complete();
+    }
 }
 
