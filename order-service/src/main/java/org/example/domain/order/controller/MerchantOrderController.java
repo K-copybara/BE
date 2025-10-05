@@ -5,10 +5,7 @@ import org.example.domain.entity.OrderStatus;
 import org.example.domain.order.dto.response.MerchantOrderSummaryDto;
 import org.example.domain.order.service.MerchantOrderService;
 import org.example.dto.Response;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +27,14 @@ public class MerchantOrderController {
                 : OrderStatus.PENDING; // 기본값
         List<MerchantOrderSummaryDto> response = merchantOrderService.getOrdersByStatus(storeId, orderStatus);
         return Response.success("주문 목록 조회 성공", response);
+    }
+
+    // 주문 완료
+
+    @PostMapping("/{orderId}")
+    public Response<Void> completeOrder(@PathVariable String orderId) {
+        merchantOrderService.completeOrder(orderId);
+        return Response.success("주문 완료");
     }
 
 }

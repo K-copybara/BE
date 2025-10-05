@@ -45,12 +45,15 @@ public class TokenProvider {
     }
 
     public TokenDto generateTokenDto(Authentication authentication) {
+        Store store = storeRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("상점 정보를 찾을 수 없습니다."));
+
         // 권한들 가져오기
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        String accessToken = generateAccessToken(authentication.getName(), authorities);
+        String accessToken = generateAccessToken(authentication.getName(), authorities, store.getId());
         String refreshToken = generateRefreshToken(authentication.getName(), authorities);
 
         long now = System.currentTimeMillis();
@@ -90,8 +93,12 @@ public class TokenProvider {
             throw new BadCredentialsException("리프레시 토큰이 일치하지 않습니다. 다시 로그인 해주세요.");
         }
 
+        // 상점 정보 조회 (storeId 가져오기)
+        Store store = storeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("상점 정보를 찾을 수 없습니다."));
+
         // 새 토큰 생성
-        String newAccessToken = generateAccessToken(email, authorities);
+        String newAccessToken = generateAccessToken(email, authorities, store.getId());
         String newRefreshToken = generateRefreshToken(email, authorities);
 
         // Redis에 새 토큰 저장 - 기존 값 덮어쓰기
@@ -106,12 +113,13 @@ public class TokenProvider {
                 .build();
     }
 
-    private String generateAccessToken(String email, String authorities) {
+    private String generateAccessToken(String email, String authorities, Long storeId) {
         long now = (new Date()).getTime();
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
         return Jwts.builder()
                 .setSubject(email)
                 .claim(AUTHORITIES_KEY, authorities)
+                .claim("storeId", storeId)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();

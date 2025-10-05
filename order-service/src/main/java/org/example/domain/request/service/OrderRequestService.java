@@ -6,6 +6,7 @@ import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.OrderRequestItem;
 import org.example.domain.request.dto.request.OrderRequestDto;
 import org.example.domain.request.dto.response.OrderRequestResponse;
+import org.example.domain.request.dto.response.OrderRequestMerchantResponse;
 import org.example.domain.request.repository.OrderRequestRepository;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class OrderRequestService {
 
     private final OrderRequestRepository orderRequestRepository;
 
+    // 요청 생성
     @Transactional
     public OrderRequestResponse createOrderRequest(OrderRequestDto dto) {
         // 1. OrderRequest 생성
@@ -46,6 +48,23 @@ public class OrderRequestService {
 
         // 3. 응답 변환
         return OrderRequestResponse.fromEntity(saved);
+    }
+
+    // 사장 요청 조회
+    public List<OrderRequestMerchantResponse> getRequestsByStore(Long storeId) {
+        List<OrderRequest> requests = orderRequestRepository.findAllByStoreIdOrderByCreatedAtDesc(storeId);
+        return requests.stream()
+                .map(OrderRequestMerchantResponse::from)
+                .toList();
+    }
+
+    // 사장 요청 완료
+    @Transactional
+    public void completeRequest(Long requestId) {
+        OrderRequest request = orderRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        request.complete();
     }
 }
 

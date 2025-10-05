@@ -15,4 +15,7 @@ public interface OrderRequestRepository extends JpaRepository<OrderRequest, Long
     @Query("SELECT r FROM OrderRequest r LEFT JOIN FETCH r.items WHERE r.storeId = :storeId AND r.customerKey = :customerKey ORDER BY r.createdAt DESC")
     List<OrderRequest> findByStoreIdAndCustomerKey(@Param("storeId") Long storeId,
                                                    @Param("customerKey") String customerKey);
+
+    // 요청시간 기준 내림차순
+    List<OrderRequest> findAllByStoreIdOrderByCreatedAtDesc(Long storeId);
 }
