@@ -100,6 +100,7 @@ public class PaymentService {
                 .totalPrice(totalPrice)
                 .orderStatus(OrderStatus.PENDING)
                 .createdAt(LocalDateTime.now())
+                .cart(cart)
                 .requestNote(req.requestNote())
                 .build();
 
@@ -186,6 +187,17 @@ public class PaymentService {
 
         Orders orders = ordersRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        // Orders와 연결된 Cart 가져오기
+        Cart cart = orders.getCart();
+
+        // 기존 Cart를 COMPLETED로 변경
+        cart.markAsCompleted();
+        cartRepository.save(cart);
+
+        // 새 Cart 생성
+        Cart newCart = Cart.newActiveCart(cart.getStoreId(), cart.getCustomerKey());
+        cartRepository.save(newCart);
 
         TossPayment tossPayment = TossPayment.builder()
                 .paymentId(UUID.randomUUID())
