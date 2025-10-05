@@ -6,6 +6,7 @@ import org.example.domain.entity.Orders;
 import org.example.domain.order.repository.OrdersRepository;
 import org.example.domain.stats.dto.response.DailySalesDto;
 import org.example.domain.stats.dto.response.DailySalesResponse;
+import org.example.domain.stats.dto.response.HourlySalesResponse;
 import org.example.domain.stats.dto.response.WeekdaySalesResponse;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -111,5 +112,43 @@ public class StatisticsService {
 
         // 결과 반환
         return new DailySalesResponse(date, totalSales, orderCount);
+    }
+
+    // 시간대별 매출 조회
+    @Transactional(readOnly = true)
+    public List<HourlySalesResponse> getHourlySales(String date, Long storeId) {
+        // 날짜 파싱
+        LocalDate targetDate = LocalDate.parse(date);
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay();
+
+        // 해당 날짜의 완료된 주문 조회
+        List<Orders> completedOrders = ordersRepository.findByStoreIdAndOrderStatusAndCreatedAtBetween(
+                storeId,
+                OrderStatus.COMPLETED,
+                startOfDay,
+                endOfDay
+        );
+
+        // 시간대별 초기화 (00~23)
+        Map<Integer, HourlySalesResponse> hourlyStats = new LinkedHashMap<>();
+        for (int hour = 0; hour < 24; hour++) {
+            String hourLabel = String.format("%02d", hour);
+            hourlyStats.put(hour, new HourlySalesResponse(hourLabel, 0L, 0L));
+        }
+
+        // 주문 데이터 집계
+        for (Orders order : completedOrders) {
+            int hour = order.getCreatedAt().getHour();
+            HourlySalesResponse stat = hourlyStats.get(hour);
+
+            long newSales = stat.getSales() + order.getTotalPrice();
+            long newCount = stat.getOrderCount() + 1;
+
+            hourlyStats.put(hour, new HourlySalesResponse(stat.getHour(), newSales, newCount));
+        }
+
+        // 결과 반환
+        return new ArrayList<>(hourlyStats.values());
     }
 }
