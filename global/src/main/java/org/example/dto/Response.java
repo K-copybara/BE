@@ -16,10 +16,17 @@ public class Response<T> {
         this.data = data;
     }
 
+    // 성공 (데이터 포함)
     public static <T> Response<T> success(String message, T data) {
         return new Response<>(true, message, data);
     }
 
+    // 성공 (데이터 없음)
+    public static <T> Response<T> success(String message) {
+        return new Response<>(true, message, null);
+    }
+
+    // 실패
     public static <T> Response<T> fail(String message) {
         return new Response<>(false, message, null);
     }

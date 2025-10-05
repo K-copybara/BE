@@ -17,6 +17,7 @@ public class MerchantOrderService {
 
     private final OrdersRepository ordersRepository;
 
+    // 사장 주문 내역 조회
     @Transactional
     public List<MerchantOrderSummaryDto> getOrdersByStatus(Long storeId, OrderStatus status) {
 
@@ -38,6 +39,19 @@ public class MerchantOrderService {
                                 .toList())
                         .build())
                 .toList();
+    }
+
+    // 주문 완료
+    @Transactional
+    public void completeOrder(String orderId) {
+        Orders order = ordersRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        if (order.getOrderStatus() == OrderStatus.COMPLETED) {
+            throw new IllegalStateException("이미 완료된 주문입니다.");
+        }
+
+        order.complete();
     }
 }
 

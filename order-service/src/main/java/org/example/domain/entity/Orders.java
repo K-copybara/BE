@@ -62,4 +62,9 @@ public class Orders {
         this.orderItems.add(orderItem);
         orderItem.setOrders(this); // 양방향 동기화
     }
+
+    // 주문 완료
+    public void complete() {
+        this.orderStatus = OrderStatus.COMPLETED;
+    }
 }
