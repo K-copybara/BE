@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +38,12 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
             "ORDER BY o.createdAt DESC")
     List<Orders> findOrdersByStoreAndStatus(@Param("storeId") Long storeId,
                                             @Param("status") OrderStatus status);
+
+    // 월별 요일별 매출
+    List<Orders> findByStoreIdAndOrderStatusAndCreatedAtBetween(
+            Long storeId,
+            OrderStatus status,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

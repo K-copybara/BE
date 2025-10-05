@@ -1,11 +1,18 @@
 package org.example.domain.stats.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.domain.stats.dto.request.DailySalesDto;
+import org.example.domain.entity.OrderStatus;
+import org.example.domain.entity.Orders;
+import org.example.domain.order.repository.OrdersRepository;
+import org.example.domain.stats.dto.response.DailySalesDto;
+import org.example.domain.stats.dto.response.WeekdaySalesResponse;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,6 +21,7 @@ import java.util.stream.Collectors;
 public class StatisticsService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final OrdersRepository ordersRepository;
 
     // 월별 일별 매출
     @Transactional(readOnly = true)
@@ -42,5 +50,36 @@ public class StatisticsService {
         return result.stream()
                 .sorted(Comparator.comparing(DailySalesDto::getDate))
                 .collect(Collectors.toList());
+    }
+
+    // 월별 요일별 매출
+    @Transactional(readOnly = true)
+    public List<WeekdaySalesResponse> getWeekdaySales(String month, Long storeId) {
+        // 월 정보 파싱
+        YearMonth yearMonth = YearMonth.parse(month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        // 해당 월의 완료된 주문 조회
+        List<Orders> orders = ordersRepository.findByStoreIdAndOrderStatusAndCreatedAtBetween(
+                storeId,
+                OrderStatus.COMPLETED,
+                startDate.atStartOfDay(),
+                endDate.plusDays(1).atStartOfDay() // inclusive 보정
+        );
+
+        // 요일별 매출 합산
+        Map<DayOfWeek, Long> weekdaySales = Arrays.stream(DayOfWeek.values())
+                .collect(Collectors.toMap(day -> day, day -> 0L));
+
+        for (Orders order : orders) {
+            DayOfWeek dayOfWeek = order.getCreatedAt().getDayOfWeek();
+            weekdaySales.put(dayOfWeek, weekdaySales.get(dayOfWeek) + order.getTotalPrice());
+        }
+
+        // 응답 변환
+        return Arrays.stream(DayOfWeek.values())
+                .map(day -> new WeekdaySalesResponse(day.name(), weekdaySales.get(day)))
+                .toList();
     }
 }

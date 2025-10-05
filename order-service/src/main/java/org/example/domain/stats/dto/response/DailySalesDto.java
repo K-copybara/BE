@@ -1,4 +1,4 @@
-package org.example.domain.stats.dto.request;
+package org.example.domain.stats.dto.response;
 
 import lombok.*;
 
