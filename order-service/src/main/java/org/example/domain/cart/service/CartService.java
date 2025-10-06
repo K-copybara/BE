@@ -16,6 +16,7 @@ import org.example.domain.config.kafka.producer.CartMenuRequestProducer;
 import org.example.domain.config.kafka.producer.MenuRequestProducer;
 import org.example.domain.entity.Cart;
 import org.example.domain.entity.CartItem;
+import org.example.domain.entity.CartStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -56,7 +57,7 @@ public class CartService {
     // 장바구니 조회
     @Transactional
     public CartResponse getCart(Long storeId, String customerKey) throws Exception {
-        Cart cart = cartRepository.findByStoreIdAndCustomerKey(storeId, customerKey)
+        Cart cart = cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다."));
 
         List<Long> menuIds = cart.getItems().stream()
@@ -99,14 +100,9 @@ public class CartService {
 
     // 장바구니 조회 / 생성 (공통 로직)
     private Cart findOrCreateCart(Long storeId, String customerKey) {
-        return cartRepository.findByStoreIdAndCustomerKey(storeId, customerKey)
+        return cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
                 .orElseGet(() -> {
-                    Cart newCart = Cart.builder()
-                            .storeId(storeId)
-                            .customerKey(customerKey)
-                            .createdAt(LocalDateTime.now())
-                            .items(new ArrayList<>())
-                            .build();
+                    Cart newCart = Cart.newActiveCart(storeId, customerKey);
                     return cartRepository.save(newCart);
                 });
     }

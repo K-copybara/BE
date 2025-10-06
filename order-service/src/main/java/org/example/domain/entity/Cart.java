@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -30,7 +31,27 @@ public class Cart {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CartStatus status = CartStatus.ACTIVE;
+
     // Cart 1 : N CartItem
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items;
+
+    // 결제 완료 시 상태 변경
+    public void markAsCompleted() {
+        this.status = CartStatus.COMPLETED;
+    }
+
+    // 새로운 장바구니 초기화용 팩토리
+    public static Cart newActiveCart(Long storeId, String customerKey) {
+        return Cart.builder()
+                .storeId(storeId)
+                .customerKey(customerKey)
+                .status(CartStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .items(new ArrayList<>())
+                .build();
+    }
 }

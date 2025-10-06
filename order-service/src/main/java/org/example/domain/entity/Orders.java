@@ -52,6 +52,14 @@ public class Orders {
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TossPayment> tossPayments = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", nullable = false)
+    private Cart cart;
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
     // 취소 상태 변경
     public void cancel() {
         this.orderStatus = OrderStatus.CANCELED;

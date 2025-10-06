@@ -7,8 +7,10 @@ import org.example.domain.entity.Orders;
 import org.example.domain.order.dto.response.MerchantOrderItemDto;
 import org.example.domain.order.dto.response.MerchantOrderSummaryDto;
 import org.example.domain.order.repository.OrdersRepository;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -16,6 +18,7 @@ import java.util.List;
 public class MerchantOrderService {
 
     private final OrdersRepository ordersRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     // 사장 주문 내역 조회
     @Transactional
@@ -52,6 +55,11 @@ public class MerchantOrderService {
         }
 
         order.complete();
+
+        String today = LocalDate.now().toString(); // yyyy-MM-dd
+        String key = "order:stats:" + order.getStoreId() + ":daily:" + today;
+
+        redisTemplate.opsForHash().increment(key, "sales", order.getTotalPrice());
     }
 }
 
