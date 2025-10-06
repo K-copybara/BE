@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.domain.config.kafka.consumer.MenuResponseConsumer;
 import org.example.domain.config.kafka.dto.MenuDto;
 import org.example.domain.config.kafka.producer.MenuRequestProducer;
+import org.example.domain.config.kafka.producer.OrderEventProducer;
 import org.example.domain.entity.*;
 import org.example.domain.pay.dto.request.CancelPaymentRequest;
 import org.example.domain.pay.dto.request.ConfirmPaymentRequest;
@@ -15,6 +16,7 @@ import org.example.domain.pay.dto.response.PaymentPrepareResponse;
 import org.example.domain.cart.repository.CartRepository;
 import org.example.domain.order.repository.OrdersRepository;
 import org.example.domain.pay.repository.TossPaymentRepository;
+import org.example.dto.OrderPaidEvent;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -48,6 +50,7 @@ public class PaymentService {
     private final CartRepository cartRepository;
     private final OrdersRepository ordersRepository;
     private final TossPaymentRepository tossPaymentRepository;
+    private final OrderEventProducer orderEventProducer;
 
     // 결제 준비
     public PaymentPrepareResponse preparePayment(PreparePaymentRequest req) throws Exception {
@@ -212,6 +215,23 @@ public class PaymentService {
                 .build();
 
         tossPaymentRepository.save(tossPayment);
+
+        OrderPaidEvent event = OrderPaidEvent.builder()
+                .orderId(orderId)
+                .storeId(orders.getStoreId())
+                .tableId(orders.getTableId())
+                .orderedAt(orders.getCreatedAt())
+                .requestNote(orders.getRequestNote())
+                .items(orders.getOrderItems().stream()
+                        .map(item -> OrderPaidEvent.OrderItemDto.builder()
+                                .menuId(item.getMenuId())
+                                .menuName(item.getMenuName())
+                                .amount(item.getOrderQuantity().intValue())
+                                .build())
+                        .toList())
+                .build();
+
+        orderEventProducer.sendOrderPaid(event);
 
         return new ChargeResponse(amount, "결제 성공");
     }
