@@ -2,22 +2,27 @@ package org.example.domain.request.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.OrderRequestItem;
 import org.example.domain.request.dto.request.OrderRequestDto;
 import org.example.domain.request.dto.response.OrderRequestResponse;
 import org.example.domain.request.dto.response.OrderRequestMerchantResponse;
 import org.example.domain.request.repository.OrderRequestRepository;
+import org.example.dto.RequestCreatedEvent;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderRequestService {
 
     private final OrderRequestRepository orderRequestRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     // 요청 생성
     @Transactional
@@ -45,6 +50,29 @@ public class OrderRequestService {
         }
 
         OrderRequest saved = orderRequestRepository.save(orderRequest);
+
+        // Kafka 이벤트 발행 (요청 알림)
+        try {
+            RequestCreatedEvent event = RequestCreatedEvent.builder()
+                    .requestId(saved.getId())
+                    .storeId(saved.getStoreId())
+                    .tableId(saved.getTableId())
+                    .requestedAt(saved.getCreatedAt())
+                    .requestNote(saved.getRequestNote())
+                    .items(saved.getItems().stream()
+                            .map(i -> new RequestCreatedEvent.RequestItemDto(
+                                    i.getMenuName(),
+                                    i.getAmount()
+                            ))
+                            .toList())
+                    .build();
+
+            kafkaTemplate.send("request-created-notification", event);
+            log.info("📤 Kafka 요청 알림 이벤트 발행 완료: {}", event);
+        } catch (Exception e) {
+            log.error("❌ Kafka 요청 알림 발행 실패", e);
+        }
+
 
         // 3. 응답 변환
         return OrderRequestResponse.fromEntity(saved);
