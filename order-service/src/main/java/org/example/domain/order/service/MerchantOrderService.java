@@ -18,7 +18,7 @@ import java.util.List;
 public class MerchantOrderService {
 
     private final OrdersRepository ordersRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     // 사장 주문 내역 조회
     @Transactional

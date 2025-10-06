@@ -1,13 +1,11 @@
 package org.example.domain.stats.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.entity.OrderItem;
 import org.example.domain.entity.OrderStatus;
 import org.example.domain.entity.Orders;
 import org.example.domain.order.repository.OrdersRepository;
-import org.example.domain.stats.dto.response.DailySalesDto;
-import org.example.domain.stats.dto.response.DailySalesResponse;
-import org.example.domain.stats.dto.response.HourlySalesResponse;
-import org.example.domain.stats.dto.response.WeekdaySalesResponse;
+import org.example.domain.stats.dto.response.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StatisticsService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final OrdersRepository ordersRepository;
 
     // 월별 일별 매출
@@ -150,5 +148,63 @@ public class StatisticsService {
 
         // 결과 반환
         return new ArrayList<>(hourlyStats.values());
+    }
+
+    // 일별 메뉴 매출
+    @Transactional(readOnly = true)
+    public List<MenuSalesResponse> getMenuSales(String date, String sort, Long storeId) {
+        LocalDate targetDate = LocalDate.parse(date);
+        LocalDateTime start = targetDate.atStartOfDay();
+        LocalDateTime end = targetDate.plusDays(1).atStartOfDay();
+
+        // 해당 날짜의 완료된 주문만 조회
+        List<Orders> completedOrders = ordersRepository.findByStoreIdAndOrderStatusAndCreatedAtBetween(
+                storeId, OrderStatus.COMPLETED, start, end);
+
+        // 하루동안 메뉴별 매출, 주문건수 계산
+        Map<Long, MenuSalesResponse> stats = new HashMap<>();
+
+        for (Orders order : completedOrders) {   // 하루 동안 모든 주문 순회
+            for (OrderItem item : order.getOrderItems()) {
+                stats.compute(item.getMenuId(), (id, existing) -> { // menuId 존재하면 기존 값 업데이트, 없으면 새로 생성
+                    if (existing == null) {   // 메뉴 처음 등장 -> 새로 추가
+                        return MenuSalesResponse.builder()
+                                .menuId(item.getMenuId())
+                                .name(item.getMenuName())
+                                .sales(item.getTotalMenuPrice())
+                                .orderCount(1L)
+                                .reviewCount(getReviewAvgFromRedis(item.getMenuId()))
+                                .build();
+                    } else {   // 이미 누적 중인 메뉴 -> 기존 값 더하기
+                        return MenuSalesResponse.builder()
+                                .menuId(id)
+                                .name(existing.getName())
+                                .sales(existing.getSales() + item.getTotalMenuPrice())
+                                .orderCount(existing.getOrderCount() + 1)
+                                .reviewCount(getReviewAvgFromRedis(item.getMenuId()))
+                                .build();
+                    }
+                });
+            }
+        }
+
+        // 정렬
+        Comparator<MenuSalesResponse> comparator;
+        if ("review".equalsIgnoreCase(sort)) {
+            comparator = Comparator.comparing(MenuSalesResponse::getReviewCount).reversed();
+        } else {
+            comparator = Comparator.comparing(MenuSalesResponse::getSales).reversed();
+        }
+
+        return stats.values().stream()
+                .sorted(comparator)
+                .toList();
+    }
+
+    // Redis에서 리뷰 평점 가져오기
+    private Long getReviewAvgFromRedis(Long menuId) {
+        String key = "review:menu:" + menuId + ":avg";
+        String value = redisTemplate.opsForValue().get(key);
+        return (long) ((value != null) ? Double.parseDouble(value) : 0.0);
     }
 }

@@ -1,10 +1,7 @@
 package org.example.domain.stats.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.domain.stats.dto.response.DailySalesDto;
-import org.example.domain.stats.dto.response.DailySalesResponse;
-import org.example.domain.stats.dto.response.HourlySalesResponse;
-import org.example.domain.stats.dto.response.WeekdaySalesResponse;
+import org.example.domain.stats.dto.response.*;
 import org.example.domain.stats.service.StatisticsService;
 import org.example.dto.Response;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,5 +57,16 @@ public class StatisticsController {
     ) {
         List<HourlySalesResponse> data = statisticsService.getHourlySales(date, storeId);
         return Response.success("일별 시간대별 매출 조회 성공", data);
+    }
+
+    // 일별 메뉴 매출 조회
+    @GetMapping("/menu")
+    public Response<?> getMenuSales(
+            @RequestParam String date,
+            @RequestParam(required = false, defaultValue = "sales") String sort,
+            @RequestParam Long storeId
+    ) {
+        List<MenuSalesResponse> result = statisticsService.getMenuSales(date, sort, storeId);
+        return Response.success("일별 메뉴 매출 조회 성공", result);
     }
 }
