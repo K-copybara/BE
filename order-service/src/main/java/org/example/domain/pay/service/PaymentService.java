@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,7 @@ public class PaymentService {
     private final OrdersRepository ordersRepository;
     private final TossPaymentRepository tossPaymentRepository;
     private final OrderEventProducer orderEventProducer;
+    private static final AtomicInteger orderCounter = new AtomicInteger(0);
 
     // 결제 준비
     public PaymentPrepareResponse preparePayment(PreparePaymentRequest req) throws Exception {
@@ -58,8 +60,8 @@ public class PaymentService {
         Cart cart = cartRepository.findById(req.cartId())
                 .orElseThrow(() -> new IllegalArgumentException("장바구니를 찾을 수 없습니다."));
 
-        // 2. 요청 ID 생성
-        String orderId = UUID.randomUUID().toString();
+        // 2. 요청 ID 생성 (순번 + 주문번호)
+        String orderId =  orderCounter.incrementAndGet() + "-" + UUID.randomUUID().toString();
         String customerKey = cart.getCustomerKey();
 
         // 3. Kafka로 메뉴 조회 요청 발행
