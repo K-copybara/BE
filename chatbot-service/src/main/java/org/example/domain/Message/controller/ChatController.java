@@ -23,12 +23,13 @@ public class ChatController {
     public void handleMessage(ChatMessage chatMessage) {
         log.info("📨 [{}] 사용자 메시지 수신: {}", chatMessage.getCustomerKey(), chatMessage.getContent());
 
-        AiResponse aiResponse = chatService.askAi(chatMessage);
+        // AI 응답 + 저장 + messageId 포함된 Map 반환
+        var responsePayload = chatService.askAi(chatMessage);
 
         // AI 응답을 해당 사용자 토픽으로 브로드캐스트
         messagingTemplate.convertAndSend(
                 "/topic/chat/" + chatMessage.getCustomerKey(),
-                aiResponse
+                responsePayload
         );
     }
 }
