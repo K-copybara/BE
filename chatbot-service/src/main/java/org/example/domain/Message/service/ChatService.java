@@ -11,6 +11,8 @@ import org.example.domain.entity.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class ChatService {
 
     // STOMP 용
     @Transactional
-    public AiResponse askAi(ChatMessage chatMessage) {
+    public Map<String, Object> askAi(ChatMessage chatMessage) {
         ChatSession session = chatSessionRepository.findByCustomerKey(chatMessage.getCustomerKey())
                 .orElseThrow(() -> new IllegalArgumentException("세션이 존재하지 않습니다."));
 
@@ -53,7 +55,7 @@ public class ChatService {
 
     // REST 용 (공통 내부 로직)
     @Transactional
-    public AiResponse askAi(String customerKey, String content, ChatSession session) {
+    public Map<String, Object> askAi(String customerKey, String content, ChatSession session) {
 
         // 사용자 메시지 저장
         Message customerMsg = Message.builder()
@@ -63,13 +65,15 @@ public class ChatService {
                 .build();
         messageRepository.save(customerMsg);
 
-        // AI 호출
-        AiResponse aiResponse = aiClient.ask(Map.of(
-                "query", content,
-                "customerKey", customerKey
-        ));
+        // FastAPI 호출 (AI 응답 받기)
+        AiResponse aiResponse = aiClient.ask(
+                session.getCustomerKey(),
+                content,
+                session.getStoreId(),
+                session.getTableId()
+        );
 
-        // AI 응답 저장
+        // AI 응답 메시지 저장
         Message botMsg = Message.builder()
                 .chatSession(session)
                 .role("BOT")
@@ -77,16 +81,22 @@ public class ChatService {
                 .build();
         messageRepository.save(botMsg);
 
-        return aiResponse;
+        // 반환할 데이터 구성 (명세서에 맞춤)
+        return Map.of(
+                "messageId", botMsg.getId(),
+                "role", botMsg.getRole(),
+                "content", botMsg.getMessage(),
+                "sentAt", botMsg.getSentAt()
+        );
     }
 
-    // 메시지 목록 조회
+    // 채팅 메세지 목록 조회 (이전 내역)
     @Transactional(readOnly = true)
-    public Map<String, Object> getMessagesBySession(Long sessionId) {
+    public List<Map<String, Object>> getMessages(Long sessionId) {
         ChatSession session = chatSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
 
-        List<Map<String, Object>> messages = messageRepository.findByChatSessionOrderBySentAtAsc(session)
+        return messageRepository.findByChatSessionOrderBySentAtAsc(session)
                 .stream()
                 .map(m -> {
                     Map<String, Object> map = new HashMap<>();
@@ -98,12 +108,6 @@ public class ChatService {
                 })
                 .toList();
 
-
-        return Map.of(
-                "success", true,
-                "message", "챗봇 메시지 조회 성공",
-                "data", messages
-        );
     }
 
 }

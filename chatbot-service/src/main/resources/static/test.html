@@ -21,7 +21,8 @@
       console.log("✅ 연결 성공");
       stompClient.subscribe("/topic/chat/" + customerKey, (res) => {
         const msg = JSON.parse(res.body);
-        document.getElementById("output").innerText += "\n🤖 " + msg.answer;
+        // ✅ 응답 필드명 content 사용
+        document.getElementById("output").innerText += "\n🤖 " + msg.content + " (" + msg.sentAt + ")";
       });
     });
 
