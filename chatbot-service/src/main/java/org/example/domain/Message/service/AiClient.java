@@ -15,17 +15,21 @@ public class AiClient {
             .baseUrl("http://localhost:8000") // FastAPI 서버 주소
             .build();
 
-    public AiResponse ask(Map<String, Object> payload) {
-        try {
-            return webClient.post()
-                    .uri("/rag/ask")
-                    .bodyValue(payload)
-                    .retrieve()
-                    .bodyToMono(AiResponse.class)
-                    .block();
-        } catch (Exception e) {
-            log.error("❌ AI 서비스 호출 실패: {}", e.getMessage());
-            return new AiResponse("AI 서버가 응답하지 않습니다.");
-        }
+
+    public AiResponse ask(String customerKey, String userInput, Long storeId, Long tableId) {
+        Map<String, Object> body = Map.of(
+                "customer_key", customerKey,
+                "user_input", userInput,
+                "store_id", storeId,
+                "table_id", tableId
+        );
+
+        return webClient.post()
+                .uri("/response")   // FastAPI 엔드포인트
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(AiResponse.class)
+                .block();
     }
+
 }

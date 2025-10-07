@@ -12,6 +12,7 @@ import org.example.dto.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -32,33 +33,21 @@ public class ChatRestController {
         ChatSession session = chatSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
 
-        AiResponse aiResponse = chatService.askAi(session.getCustomerKey(), req.getMessage(), session);
-
-        Map<String, Object> data = Map.of(
-                "role", "CUSTOMER",
-                "content", req.getMessage(),
-                "sentAt", aiResponse.getSentAt()
+        // ChatService에서 AI 호출 + DB 저장 + 응답 Map 반환
+        Map<String, Object> aiMessage = chatService.askAi(
+                session.getCustomerKey(),
+                req.getMessage(),
+                session
         );
 
-        return ResponseEntity.ok(Response.success("메시지 전송 성공", data));
+        // 응답 데이터 (BOT 메시지 기준)
+        return ResponseEntity.ok(Response.success("메시지 전송 성공", aiMessage));
     }
 
     // 메세지 목록 조회 (이전 내역)
     @GetMapping("/session/{sessionId}/messages")
     public ResponseEntity<Response<?>> getMessages(@PathVariable Long sessionId) {
-        ChatSession session = chatSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
-
-        var messages = messageRepository.findByChatSessionOrderBySentAtAsc(session)
-                .stream()
-                .map(m -> Map.of(
-                        "messageId", m.getId(),
-                        "role", m.getRole(),
-                        "content", m.getMessage(),
-                        "sentAt", m.getSentAt()
-                ))
-                .toList();
-
+        List<Map<String, Object>> messages = chatService.getMessages(sessionId);
         return ResponseEntity.ok(Response.success("챗봇 메시지 조회 성공", messages));
     }
 }
