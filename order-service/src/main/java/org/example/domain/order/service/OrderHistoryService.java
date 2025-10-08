@@ -2,6 +2,7 @@ package org.example.domain.order.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.domain.config.CustomerSessionValidator;
 import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.Orders;
 import org.example.domain.order.dto.response.ItemDto;
@@ -22,10 +23,14 @@ public class OrderHistoryService {
 
     private final OrdersRepository ordersRepository;
     private final OrderRequestRepository orderRequestRepository;
+    private final CustomerSessionValidator sessionValidator;
 
     //  고객 주문 내역 조회
     @Transactional
     public OrderHistoryResponse getCustomerOrders(Long storeId, String customerKey) {
+
+        // 고객 검증
+        sessionValidator.validate(customerKey);
 
         // 주문 (결제한 메뉴 주문) 조회
         List<Orders> ordersList = ordersRepository.findOrdersWithItemsByCustomer(storeId, customerKey);
