@@ -8,6 +8,7 @@ import org.example.domain.cart.dto.response.CartItemResponse;
 import org.example.domain.cart.dto.response.CartResponse;
 import org.example.domain.cart.repository.CartItemRepository;
 import org.example.domain.cart.repository.CartRepository;
+import org.example.domain.config.CustomerSessionValidator;
 import org.example.domain.config.kafka.consumer.CartMenuResponseConsumer;
 import org.example.domain.config.kafka.consumer.MenuResponseConsumer;
 import org.example.domain.config.kafka.dto.CartMenuDto;
@@ -34,10 +35,14 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final CartMenuRequestProducer cartMenuRequestProducer;
     private final CartMenuResponseConsumer cartMenuResponseConsumer;
+    private final CustomerSessionValidator sessionValidator;
 
     // 장바구니 담기
     @Transactional
     public AddToCartResponse addToCart(CartItemRequest request) {
+        // 고객 검증
+        sessionValidator.validate(request.getCustomerKey());
+
         // 1. Cart 조회 or 생성
         Cart cart = findOrCreateCart(request.getStoreId(), request.getCustomerKey());
 
@@ -57,6 +62,10 @@ public class CartService {
     // 장바구니 조회
     @Transactional
     public CartResponse getCart(Long storeId, String customerKey) throws Exception {
+
+        // 고객 검증
+        sessionValidator.validate(customerKey);
+
         Cart cart = cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다."));
 
@@ -100,6 +109,10 @@ public class CartService {
 
     // 장바구니 조회 / 생성 (공통 로직)
     private Cart findOrCreateCart(Long storeId, String customerKey) {
+
+        // 고객 검증
+        sessionValidator.validate(customerKey);
+
         return cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
                 .orElseGet(() -> {
                     Cart newCart = Cart.newActiveCart(storeId, customerKey);
@@ -113,6 +126,9 @@ public class CartService {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
 
+        String customerKey = cartItem.getCart().getCustomerKey();
+        sessionValidator.validate(customerKey);
+
         cartItem.updateQuantity((long) newAmount);
         cartItemRepository.save(cartItem);
     }
@@ -122,6 +138,9 @@ public class CartService {
     public void deleteCartItem(Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
+
+        String customerKey = cartItem.getCart().getCustomerKey();
+        sessionValidator.validate(customerKey);
 
         cartItemRepository.delete(cartItem);
     }

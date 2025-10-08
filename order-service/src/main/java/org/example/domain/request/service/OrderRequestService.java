@@ -3,6 +3,7 @@ package org.example.domain.request.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.domain.config.CustomerSessionValidator;
 import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.OrderRequestItem;
 import org.example.domain.request.dto.request.OrderRequestDto;
@@ -23,10 +24,14 @@ public class OrderRequestService {
 
     private final OrderRequestRepository orderRequestRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final CustomerSessionValidator sessionValidator;
 
     // 요청 생성
     @Transactional
     public OrderRequestResponse createOrderRequest(OrderRequestDto dto) {
+        // 고객 검증
+        sessionValidator.validate(dto.getCustomerKey());
+
         // 1. OrderRequest 생성
         OrderRequest orderRequest = OrderRequest.builder()
                 .storeId(dto.getStoreId())
