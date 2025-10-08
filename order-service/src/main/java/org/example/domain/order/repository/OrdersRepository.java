@@ -18,13 +18,13 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
 
     // 고객 주문내역 조회
     @Query("""
-        SELECT DISTINCT o
-        FROM Orders o
-        LEFT JOIN FETCH o.orderItems i
-        WHERE o.storeId = :storeId
-          AND o.customerKey = :customerKey
-        ORDER BY o.createdAt DESC
-    """)
+                SELECT DISTINCT o
+                FROM Orders o
+                LEFT JOIN FETCH o.orderItems i
+                WHERE o.storeId = :storeId
+                  AND o.customerKey = :customerKey
+                ORDER BY o.createdAt DESC
+            """)
     List<Orders> findOrdersWithItemsByCustomer(
             @Param("storeId") Long storeId,
             @Param("customerKey") String customerKey
@@ -45,5 +45,23 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
             OrderStatus status,
             LocalDateTime start,
             LocalDateTime end
+    );
+
+    // 상위 3개 메뉴 (요청사항 제외)
+    @Query("""
+                SELECT oi.menuId
+                FROM OrderItem oi
+                JOIN oi.orders o
+                WHERE o.storeId = :storeId
+                  AND o.orderStatus = 'COMPLETED'
+                  AND o.createdAt >= :startDate
+                  AND oi.menuCategory <> '요청사항'
+                GROUP BY oi.menuId
+                ORDER BY SUM(oi.orderQuantity) DESC
+                LIMIT 3
+            """)
+    List<Long> findTop3MenuIdsByStoreAndDate(
+            @Param("storeId") Long storeId,
+            @Param("startDate") LocalDateTime startDate
     );
 }
