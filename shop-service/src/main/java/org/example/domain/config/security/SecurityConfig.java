@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/merchant/auth/**") // 로그인, 회원가입은 열어주기
                         .permitAll()
                         .requestMatchers("/v1/payments/**").permitAll()
+                        .requestMatchers("/api/customer/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

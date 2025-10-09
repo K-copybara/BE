@@ -5,21 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.domain.auth.login.dto.SignInDto;
 import org.example.domain.auth.login.dto.SignUpDto;
 import org.example.domain.auth.login.dto.TokenDto;
-import org.example.domain.auth.login.repository.StoreRepository;
+import org.example.domain.store.repository.StoreRepository;
 import org.example.domain.config.jwt.TokenProvider;
 import org.example.domain.config.redis.RedisUtil;
 import org.example.domain.entity.Store;
 import org.example.exception.CustomException;
 import org.example.exception.ErrorCode;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Slf4j

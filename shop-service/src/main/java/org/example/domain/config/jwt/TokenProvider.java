@@ -6,7 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
 import org.example.domain.auth.login.dto.TokenDto;
-import org.example.domain.auth.login.repository.StoreRepository;
+import org.example.domain.store.repository.StoreRepository;
 import org.example.domain.config.redis.RedisUtil;
 import org.example.domain.config.security.CustomUserDetails;
 import org.example.domain.entity.Store;
