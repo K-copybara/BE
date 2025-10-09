@@ -8,7 +8,7 @@ import org.example.domain.store.dto.request.StoreCategoryCreateRequestDto;
 import org.example.domain.store.dto.request.StoreCategoryOrderUpdateRequestDto;
 import org.example.domain.store.dto.response.StoreCategoryCreateResponseDto;
 import org.example.domain.store.dto.response.StoreCategoryResponseDto;
-import org.example.domain.store.repository.MenuCategoryRepository;
+import org.example.domain.menu.repository.MenuCategoryRepository;
 import org.example.domain.store.repository.StoreRepository;
 import org.example.dto.Response;
 import org.springframework.stereotype.Service;

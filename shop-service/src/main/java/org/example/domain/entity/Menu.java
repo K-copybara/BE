@@ -53,5 +53,52 @@ public class Menu {
 
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings;
+
+    // 메뉴 정보 수정
+    public void changeCategory(MenuCategory newCategory) {
+        this.category = newCategory;
+    }
+
+    public void changeName(String name) {
+        if (name != null && !name.isBlank()) this.menuName = name;
+    }
+
+    public void changePrice(Long price) {
+        if (price != null && price > 0) this.menuPrice = price;
+    }
+
+    public void changeInfo(String info) {
+        if (info != null) this.menuInfo = info;
+    }
+
+    public void changeSpicy(Long spicy) {
+        this.spicy = spicy;
+    }
+
+    public void changeAllergy(String allergy) {
+        this.allergy = allergy;
+    }
+
+    public void changeExtraInfo(String extraInfo) {
+        this.extraInfo = extraInfo;
+    }
+
+    public void changeImage(String url) {
+        this.menuPicture = url;
+    }
+
+    public void removeImage() {
+        this.menuPicture = null;
+    }
+
+    // 메뉴 상태 변경
+    public void markAsSoldOut() {
+        this.menuStatus = false;
+    }
+
+    public void markAsOnSale() {
+        this.menuStatus = true;
+    }
+
 }
 
