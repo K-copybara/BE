@@ -5,7 +5,7 @@ import org.example.domain.entity.MenuCategory;
 import org.example.domain.entity.Store;
 import org.example.domain.store.dto.response.CustomerStoreResponseDto;
 import org.example.domain.store.dto.response.StoreCategorySimpleResponseDto;
-import org.example.domain.store.repository.MenuCategoryRepository;
+import org.example.domain.menu.repository.MenuCategoryRepository;
 import org.example.domain.store.repository.StoreRepository;
 import org.example.dto.Response;
 import org.springframework.stereotype.Service;

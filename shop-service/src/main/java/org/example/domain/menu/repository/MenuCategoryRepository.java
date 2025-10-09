@@ -1,4 +1,4 @@
-package org.example.domain.store.repository;
+package org.example.domain.menu.repository;
 
 
 import org.example.domain.entity.MenuCategory;
