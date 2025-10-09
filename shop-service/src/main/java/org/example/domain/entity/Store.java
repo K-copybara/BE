@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.example.domain.store.dto.response.BusinessHoursDetailDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -58,6 +59,24 @@ public class Store {
         this.status = false;
     }
 
+    // 요청사항 카테고리는 모든 상점에 기본 적용
+    @PostPersist
+    public void createDefaultCategory() {
+        // store 저장 직후 호출됨 (JPA lifecycle callback)
+        if (this.categories == null) {
+            this.categories = new ArrayList<>();
+        }
+
+        MenuCategory defaultCategory = MenuCategory.builder()
+                .store(this)
+                .categoryName("요청사항")
+                .orderedIndex(0L)
+                .isDefault(true)
+                .build();
+
+        this.categories.add(defaultCategory);
+    }
+
     // 상점 공지 수정
     public void changeNotice(String newNotice) {
         if (newNotice == null || newNotice.isBlank()) {
@@ -87,5 +106,11 @@ public class Store {
                 .collect(Collectors.joining(";"));
 
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void validateOwnership(MenuCategory category) {
+        if (!category.getStore().getId().equals(this.id)) {
+            throw new IllegalStateException("다른 상점의 카테고리는 삭제할 수 없습니다.");
+        }
     }
 }
