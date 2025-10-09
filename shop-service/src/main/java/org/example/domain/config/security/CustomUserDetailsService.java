@@ -1,7 +1,7 @@
 package org.example.domain.config.security;
 
 import lombok.RequiredArgsConstructor;
-import org.example.domain.auth.login.repository.StoreRepository;
+import org.example.domain.store.repository.StoreRepository;
 import org.example.domain.entity.Store;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
