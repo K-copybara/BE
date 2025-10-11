@@ -2,6 +2,7 @@ package org.example.domain.store.service;
 
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.config.kafka.producer.StoreEventProducer;
 import org.example.domain.entity.Store;
 import org.example.domain.store.dto.request.StoreBusinessHoursUpdateRequestDto;
 import org.example.domain.store.dto.request.StoreNoticeUpdateRequestDto;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class StoreService {
 
     private final StoreRepository storeRepository;
+    private final StoreEventProducer storeEventProducer;
 
     // 상점 정보 조회
     public StoreResponseDto getStoreInfoByEmail(String email) {
@@ -121,6 +123,10 @@ public class StoreService {
                 .orElseThrow(() -> new IllegalArgumentException("상점 정보를 찾을 수 없습니다."));
 
         store.changeNotice(requestDto.getNotice());
+
+        // AI 서버 자동 업데이트 이벤트 발행
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED");
+
         return Response.success("공지 수정 성공", null);
     }
 
@@ -131,6 +137,9 @@ public class StoreService {
                 .orElseThrow(() -> new IllegalArgumentException("상점을 찾을 수 없습니다."));
 
         store.changeBusinessHours(requestDto.getBusinessHours()); // 도메인 행위 호출
+
+        // AI 서버 자동 업데이트 이벤트 발행
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED");
 
         return Response.success("영업 시간 수정 성공", null);
     }

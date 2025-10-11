@@ -1,6 +1,7 @@
 package org.example.domain.menu.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.config.kafka.producer.MenuEventProducer;
 import org.example.domain.entity.Menu;
 import org.example.domain.entity.MenuCategory;
 import org.example.domain.entity.Store;
@@ -28,6 +29,7 @@ public class StoreMenuService {
     private final StoreRepository storeRepository;
     private final MenuRepository menuRepository;
     private final MenuCategoryRepository menuCategoryRepository;
+    private final MenuEventProducer menuEventProducer;
 
     // 상점 메뉴 전체 조회
     @Transactional(readOnly = true)
@@ -131,6 +133,9 @@ public class StoreMenuService {
 
         menuRepository.save(menu);
 
+        // AI 서버로 변경 사항 전송
+        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "CREATED");
+
         return Response.success("메뉴 등록 성공", null);
     }
 
@@ -173,6 +178,9 @@ public class StoreMenuService {
         }
         // else → 아무 변화 없음 (이미지 유지)
 
+        // AI 서버로 변경 사항 전송
+        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "UPDATED");
+
         return Response.success("메뉴 수정 성공", null);
     }
 
@@ -195,6 +203,9 @@ public class StoreMenuService {
             // 이미지 실제 삭제 로직 추가해야함
             System.out.println("🗑️ 메뉴 이미지 삭제(Mock): " + menu.getMenuPicture());
         }
+
+        // AI 서버로 변경 사항 전송
+        menuEventProducer.sendMenuEvent(store.getId(), menuId, "DELETED");
 
         menuRepository.delete(menu);
         return Response.success("메뉴 삭제 성공", null);
@@ -235,9 +246,13 @@ public class StoreMenuService {
         boolean currentStatus = Boolean.TRUE.equals(menu.getMenuStatus());
         if (currentStatus) {
             menu.markAsSoldOut(); // → false로 전환
+            // AI 서버로 변경 사항 전송
+            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED");
             return Response.success("일시 품절 설정 성공", null);
         } else {
             menu.markAsOnSale(); // → true로 전환
+            // AI 서버로 변경 사항 전송
+            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED");
             return Response.success("판매 재개 성공", null);
         }
     }
