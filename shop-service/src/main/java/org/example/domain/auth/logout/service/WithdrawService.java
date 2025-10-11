@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.domain.auth.logout.repository.LogoutRepository;
 import org.example.domain.config.jwt.TokenProvider;
+import org.example.domain.config.kafka.producer.StoreEventProducer;
 import org.example.domain.config.redis.RedisUtil;
 import org.example.domain.entity.Store;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +18,7 @@ public class WithdrawService {
     private final TokenProvider tokenProvider;
     private final RedisUtil redisUtil;
     private final LogoutRepository logoutRepository;
+    private final StoreEventProducer storeEventProducer;
 
     @Transactional
     public void withdraw(String token) {
@@ -34,6 +36,10 @@ public class WithdrawService {
         store.deactivate(); // Store 엔티티에 상태 변경 메서드 추가 필요
 
         log.info("상점 탈퇴 처리 완료: {}", email);
+
+        // AI 서버 동기화
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "DELETED");
+        log.info("📤 Kafka 전송: storeId={}, eventType=DELETED", store.getId());
     }
 
 }
