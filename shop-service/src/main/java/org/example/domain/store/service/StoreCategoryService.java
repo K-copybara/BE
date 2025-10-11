@@ -1,6 +1,7 @@
 package org.example.domain.store.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.config.kafka.producer.StoreEventProducer;
 import org.example.domain.entity.MenuCategory;
 import org.example.domain.entity.Store;
 import org.example.domain.store.dto.request.CategoryOrderDto;
@@ -69,6 +70,9 @@ public class StoreCategoryService {
 
         menuCategoryRepository.save(category);
 
+//        // AI 서버 자동 업데이트 이벤트 발행
+//        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "CREATED");
+
         return Response.success("카테고리 생성 성공",
                 StoreCategoryCreateResponseDto.builder().categoryId(category.getId()).build());
     }
@@ -90,6 +94,9 @@ public class StoreCategoryService {
         categories.stream()
                 .filter(category -> orderMap.containsKey(category.getId()))
                 .forEach(category -> category.changeOrder(orderMap.get(category.getId())));
+
+        // AI 서버 자동 업데이트 이벤트 발행
+    //    storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED");
 
         List<StoreCategoryResponseDto> result = categories.stream()
                 .sorted(Comparator.comparing(MenuCategory::getOrderedIndex))
@@ -117,6 +124,9 @@ public class StoreCategoryService {
         category.validateDeletable();          // 삭제 가능 여부 검증
 
         menuCategoryRepository.delete(category);
+
+        // AI 서버 자동 업데이트 이벤트 발행
+     //   storeEventProducer.sendStoreUpdatedEvent(store.getId(), "DELETED");
 
         return Response.success("카테고리 삭제 성공", null);
     }
