@@ -125,7 +125,7 @@ public class StoreService {
         store.changeNotice(requestDto.getNotice());
 
         // AI 서버 자동 업데이트 이벤트 발행
-        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED");
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED", store);
 
         return Response.success("공지 수정 성공", null);
     }
@@ -139,7 +139,7 @@ public class StoreService {
         store.changeBusinessHours(requestDto.getBusinessHours()); // 도메인 행위 호출
 
         // AI 서버 자동 업데이트 이벤트 발행
-        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED");
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "UPDATED", store);
 
         return Response.success("영업 시간 수정 성공", null);
     }
