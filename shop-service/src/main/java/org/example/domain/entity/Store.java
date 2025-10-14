@@ -46,6 +46,9 @@ public class Store {
     @Column(columnDefinition = "TEXT")
     private String notice;
 
+    @Column(name = "shop_info", columnDefinition = "TEXT")
+    private String shopInfo;
+
     @Column(name = "business_hours", columnDefinition = "TEXT")
     private String businessHours;
 

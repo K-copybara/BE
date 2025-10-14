@@ -38,7 +38,7 @@ public class WithdrawService {
         log.info("상점 탈퇴 처리 완료: {}", email);
 
         // AI 서버 동기화
-        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "DELETED");
+        storeEventProducer.sendStoreUpdatedEvent(store.getId(), "DELETED", store);
         log.info("📤 Kafka 전송: storeId={}, eventType=DELETED", store.getId());
     }
 
