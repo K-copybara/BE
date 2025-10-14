@@ -44,6 +44,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(signUpDto.getPassword()))
                 .phone(signUpDto.getPhone())
                 .address(signUpDto.getAddress())
+                .shopInfo(signUpDto.getShopInfo())
                 .status(true)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

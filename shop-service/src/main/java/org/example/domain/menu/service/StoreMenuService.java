@@ -134,7 +134,7 @@ public class StoreMenuService {
         menuRepository.save(menu);
 
         // AI 서버로 변경 사항 전송
-        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "CREATED");
+        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "CREATED", menu);
 
         return Response.success("메뉴 등록 성공", null);
     }
@@ -179,7 +179,7 @@ public class StoreMenuService {
         // else → 아무 변화 없음 (이미지 유지)
 
         // AI 서버로 변경 사항 전송
-        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "UPDATED");
+        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "UPDATED", menu);
 
         return Response.success("메뉴 수정 성공", null);
     }
@@ -205,7 +205,7 @@ public class StoreMenuService {
         }
 
         // AI 서버로 변경 사항 전송
-        menuEventProducer.sendMenuEvent(store.getId(), menuId, "DELETED");
+        menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "DELETED", menu);
 
         menuRepository.delete(menu);
         return Response.success("메뉴 삭제 성공", null);
@@ -247,12 +247,13 @@ public class StoreMenuService {
         if (currentStatus) {
             menu.markAsSoldOut(); // → false로 전환
             // AI 서버로 변경 사항 전송
-            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED");
+            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED", menu);
             return Response.success("일시 품절 설정 성공", null);
         } else {
             menu.markAsOnSale(); // → true로 전환
             // AI 서버로 변경 사항 전송
-            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED");
+            menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "STATUS_CHANGED", menu);
+
             return Response.success("판매 재개 성공", null);
         }
     }
