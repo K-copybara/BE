@@ -37,7 +37,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:3005"
+                "http://localhost:3000"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v1/payments/**").permitAll()
                         .requestMatchers("/api/customer/**").permitAll()
+                        .requestMatchers("/api/s3/**").permitAll()
                         .requestMatchers("/health").permitAll()
                         .anyRequest().authenticated()
                 )
