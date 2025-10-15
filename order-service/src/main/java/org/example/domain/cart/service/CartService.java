@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -46,14 +47,27 @@ public class CartService {
         // 1. Cart 조회 or 생성
         Cart cart = findOrCreateCart(request.getStoreId(), request.getCustomerKey());
 
-        // 2. CartItem 생성 및 저장
-        CartItem cartItem = CartItem.builder()
-                .cart(cart)
-                .menuId(request.getMenuId())
-                .quantity((long) request.getAmount())
-                .build();
+        // 2. 기존 CartItem 조회
+        Optional<CartItem> existingItemOpt = cartItemRepository
+                .findByCartAndMenuId(cart, request.getMenuId());
 
-        CartItem saved = cartItemRepository.save(cartItem);
+        CartItem saved;
+
+        if (existingItemOpt.isPresent()) {
+            // 이미 같은 메뉴가 존재 → 수량 증가
+            CartItem existingItem = existingItemOpt.get();
+            long newQuantity = existingItem.getQuantity() + request.getAmount();
+            existingItem.updateQuantity(newQuantity);
+            saved = cartItemRepository.save(existingItem);
+        } else {
+            // 새로운 메뉴 추가
+            CartItem newItem = CartItem.builder()
+                    .cart(cart)
+                    .menuId(request.getMenuId())
+                    .quantity((long) request.getAmount())
+                    .build();
+            saved = cartItemRepository.save(newItem);
+        }
 
         // 3. 응답 변환 (Kafka 호출 없음)
         return AddToCartResponse.fromEntity(saved);
