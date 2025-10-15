@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v1/payments/**").permitAll()
                         .requestMatchers("/api/customer/**").permitAll()
+                        .requestMatchers("/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
