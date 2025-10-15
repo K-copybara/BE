@@ -1,7 +1,9 @@
 package org.example.domain.menu.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.domain.config.kafka.producer.MenuEventProducer;
+import org.example.domain.config.s3.S3UploadService;
 import org.example.domain.entity.Menu;
 import org.example.domain.entity.MenuCategory;
 import org.example.domain.entity.Store;
@@ -17,11 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreMenuService {
@@ -30,6 +34,7 @@ public class StoreMenuService {
     private final MenuRepository menuRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final MenuEventProducer menuEventProducer;
+    private final S3UploadService s3UploadService;
 
     // 상점 메뉴 전체 조회
     @Transactional(readOnly = true)
@@ -104,6 +109,8 @@ public class StoreMenuService {
     @Transactional
     public Response<Void> createMenu(String email, MultipartFile image, StoreMenuCreateRequestDto requestDto) {
 
+        log.info("📩 MultipartFile 전달 여부: {}", (image != null ? image.getOriginalFilename() : "null"));
+
         Store store = storeRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("상점을 찾을 수 없습니다."));
 
@@ -111,7 +118,14 @@ public class StoreMenuService {
                 .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
 
         // 이미지 업로드 (임시 Mock URL)
-        String imageUrl = generateTemporaryImageUrl(image);
+        String imageUrl = null;
+        try {
+            if (image != null && !image.isEmpty()) {
+                imageUrl = s3UploadService.saveFile(image);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 업로드 실패", e);
+        }
 
         // 알러지 문자열 변환
         String allergies = (requestDto.getAllergies() == null || requestDto.getAllergies().isEmpty())
@@ -171,12 +185,21 @@ public class StoreMenuService {
 
         // 이미지 처리 로직
         if (requestDto.isRemoveImage()) {
-            menu.removeImage();   // 이미지 실제 삭제 로직 추가해야함
+            if (menu.getMenuPicture() != null) {
+                s3UploadService.deleteImage(menu.getMenuPicture());
+                menu.removeImage();
+            }
         } else if (image != null && !image.isEmpty()) {
-            String newImageUrl = generateTemporaryImageUrl(image);
-            menu.changeImage(newImageUrl);  // 이미지 실제 삭제 로직 추가해야함
+            if (menu.getMenuPicture() != null) {
+                s3UploadService.deleteImage(menu.getMenuPicture()); // 기존 이미지 삭제
+            }
+            try {
+                String newImageUrl = s3UploadService.saveFile(image);
+                menu.changeImage(newImageUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드 실패", e);
+            }
         }
-        // else → 아무 변화 없음 (이미지 유지)
 
         // AI 서버로 변경 사항 전송
         menuEventProducer.sendMenuEvent(store.getId(), menu.getId(), "UPDATED", menu);
@@ -200,8 +223,7 @@ public class StoreMenuService {
 
         // 이미지 삭제 (현재는 Mock)
         if (menu.getMenuPicture() != null) {
-            // 이미지 실제 삭제 로직 추가해야함
-            System.out.println("🗑️ 메뉴 이미지 삭제(Mock): " + menu.getMenuPicture());
+            s3UploadService.deleteImage(menu.getMenuPicture());
         }
 
         // AI 서버로 변경 사항 전송
@@ -211,19 +233,6 @@ public class StoreMenuService {
         return Response.success("메뉴 삭제 성공", null);
     }
 
-
-    // NCP 연결 전 임시 업로드 -> object storage 연결시 서비스로 대체, 메소드 삭제
-    private String generateTemporaryImageUrl(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            return "https://dummyimage.com/600x400/cccccc/000000.png&text=no+image";
-        }
-
-        String original = image.getOriginalFilename();
-        String uuid = UUID.randomUUID().toString().substring(0, 8);
-
-        // 실제 업로드 대신 URL 흉내
-        return "https://mock-ncloud-storage.com/tmp/" + uuid + "_" + original;
-    }
 
     // 메뉴 일시품절 처리
     @Transactional
