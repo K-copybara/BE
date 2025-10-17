@@ -1,5 +1,6 @@
 package org.example.domain.config.SSE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.RequestCreatedEvent;
 import org.example.dto.Response;
@@ -19,7 +20,14 @@ public class RequestSseController {
 
     // 구독 (사장님 화면이 이 API를 구독함)
     @GetMapping(value = "/stream", produces = "text/event-stream;charset=UTF-8")
-    public SseEmitter subscribe(@RequestParam Long storeId) {
+    public SseEmitter subscribe(
+            @RequestParam Long storeId,
+            HttpServletResponse response
+    ) {
+        // SSE 전용 CORS 헤더 추가
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         return requestSseEmitterService.subscribe(storeId);
     }
 
