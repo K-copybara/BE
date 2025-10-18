@@ -3,7 +3,10 @@ package org.example.domain.request.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.domain.cart.repository.CartRepository;
 import org.example.domain.config.CustomerSessionValidator;
+import org.example.domain.entity.Cart;
+import org.example.domain.entity.CartStatus;
 import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.OrderRequestItem;
 import org.example.domain.request.dto.request.OrderRequestDto;
@@ -25,6 +28,7 @@ public class OrderRequestService {
     private final OrderRequestRepository orderRequestRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final CustomerSessionValidator sessionValidator;
+    private final CartRepository cartRepository;
 
     // 요청 생성
     @Transactional
@@ -78,6 +82,8 @@ public class OrderRequestService {
             log.error("❌ Kafka 요청 알림 발행 실패", e);
         }
 
+        // 장바구니 초기화
+        clearCartAfterRequest(dto.getStoreId(), dto.getCustomerKey());
 
         // 3. 응답 변환
         return OrderRequestResponse.fromEntity(saved);
@@ -98,6 +104,20 @@ public class OrderRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
 
         request.complete();
+    }
+
+    // 장바구니 초기화 메서드 추가
+    private void clearCartAfterRequest(Long storeId, String customerKey) {
+        cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
+                .ifPresent(cart -> {
+                    cart.markAsCompleted();
+                    cartRepository.save(cart);
+
+                    Cart newCart = Cart.newActiveCart(storeId, customerKey);
+                    cartRepository.save(newCart);
+
+                    log.info("요청 주문 후 장바구니 초기화 완료: storeId={}, customerKey={}", storeId, customerKey);
+                });
     }
 }
 
