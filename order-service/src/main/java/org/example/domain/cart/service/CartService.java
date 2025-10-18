@@ -2,6 +2,7 @@ package org.example.domain.cart.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.domain.cart.dto.request.CartItemRequest;
 import org.example.domain.cart.dto.response.AddToCartResponse;
 import org.example.domain.cart.dto.response.CartItemResponse;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartService {
 
     private final CartRepository cartRepository;
@@ -80,8 +82,13 @@ public class CartService {
         // 고객 검증
         sessionValidator.validate(customerKey);
 
+        // ACTIVE 카트 조회 (없으면 새로 생성)
         Cart cart = cartRepository.findByStoreIdAndCustomerKeyAndStatus(storeId, customerKey, CartStatus.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다."));
+                .orElseGet(() -> {
+                    Cart newCart = Cart.newActiveCart(storeId, customerKey);
+                    log.info("ACTIVE 카트 없음 → 새로 생성: storeId={}, customerKey={}", storeId, customerKey);
+                    return cartRepository.save(newCart);
+                });
 
         List<Long> menuIds = cart.getItems().stream()
                 .map(CartItem::getMenuId)
