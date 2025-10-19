@@ -1,5 +1,6 @@
 package org.example.domain.config.SSE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.OrderPaidEvent;
 import org.example.dto.Response;
@@ -19,7 +20,14 @@ public class SseController {
 
     // SSE 구독
     @GetMapping(value = "/stream", produces = "text/event-stream;charset=UTF-8")
-    public SseEmitter subscribe(@RequestParam Long storeId) {
+    public SseEmitter subscribe(
+            @RequestParam Long storeId,
+            HttpServletResponse response
+    ) {
+        // SSE 전용 CORS 허용
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         return sseEmitterService.subscribe(storeId);
     }
 

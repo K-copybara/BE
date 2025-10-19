@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -20,6 +23,7 @@ public class SseEmitterService {
 
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // 하트비트용 스케줄러
 
     public SseEmitterService() {
         this.objectMapper = new ObjectMapper();
@@ -35,7 +39,32 @@ public class SseEmitterService {
         emitter.onCompletion(() -> emitters.remove(storeId));
         emitter.onTimeout(() -> emitters.remove(storeId));
 
-        log.info("🟢 SSE 구독 시작: {}", storeId);
+        log.info("🟢 주문 SSE 구독 시작: {}", storeId);
+
+        // 연결 직후 초기 신호 전송 (idle timeout 방지)
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("init")
+                    .data("connected"));
+            log.info("📡 주문 초기 이벤트 전송 완료: storeId={}", storeId);
+        } catch (IOException e) {
+            log.error("❌ 주문 초기 이벤트 전송 실패: {}", e.getMessage());
+        }
+
+        // 하트비트 전송 (25초 간격)
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                SseEmitter e = emitters.get(storeId);
+                if (e != null) {
+                    e.send(SseEmitter.event().comment("keepalive"));
+                    log.debug("📍주문 keepalive: storeId={}", storeId);
+                }
+            } catch (IOException ex) {
+                emitters.remove(storeId);
+                log.warn("❌ 주문 하트비트 실패, 연결 종료: storeId={}", storeId);
+            }
+        }, 25, 25, TimeUnit.SECONDS);
+
         return emitter;
     }
 
@@ -51,20 +80,20 @@ public class SseEmitterService {
 //                        .name("order-paid")
 //                        .data(json,MediaType.valueOf("text/event-stream; charset=UTF-8")));
 
-                // ✅ 전송 전 JSON 직렬화 로그 출력
+                // 전송 전 JSON 직렬화 로그 출력
                 String json = objectMapper.writerWithDefaultPrettyPrinter()
                         .writeValueAsString(data);
 
-                log.info("📤 실제 전송 데이터 (storeId={}):\n{}", storeId, json);
+                log.info("📤 주문 실제 전송 데이터 (storeId={}):\n{}", storeId, json);
 
                 emitter.send(SseEmitter.event()
                         .name("order-paid")
                         .data(data));
 
-                log.info("📨 알림 전송 완료: storeId={}", storeId);
+                log.info("📨 주문 알림 전송 완료: storeId={}", storeId);
             } catch (IOException e) {
                 emitters.remove(storeId);
-                log.error("❌ SSE 전송 실패", e);
+                log.error("❌ 주문 SSE 전송 실패", e);
             }
         }
     }
