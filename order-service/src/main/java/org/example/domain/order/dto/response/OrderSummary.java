@@ -21,4 +21,5 @@ public class OrderSummary {
     private OrderStatus status;
     private LocalDateTime createdAt;
     private List<ItemDto> items;
+    private boolean reviewed;
 }
