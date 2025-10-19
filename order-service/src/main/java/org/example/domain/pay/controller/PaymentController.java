@@ -63,6 +63,24 @@ public class PaymentController {
         return paymentService.cancelPayment(paymentKey, request);
     }
 
+    /**
+     * 결제 취소 (상인 전용)
+     * - 상인은 orderId만 전달
+     * - 서버에서 내부적으로 paymentKey 조회 후 Toss 결제 취소 API 호출
+     *
+     * @param orderId 주문 고유 ID
+     * @param request 취소 요청 정보 (사유, 금액)
+     * @return ChargeResponse (취소 금액, 메시지)
+     */
+    @PostMapping("/order/{orderId}/cancel")
+    @ResponseBody
+    public ChargeResponse cancelByOrderId(
+            @PathVariable String orderId,
+            @RequestBody CancelPaymentRequest request
+    ) throws IOException {
+        return paymentService.cancelByOrderId(orderId, request);
+    }
+
 
 }
 
