@@ -41,3 +41,6 @@ BE.git/
 
 ### redis ###
 dump.rdb
+
+# k8s 설정
+/order-service/k8s
