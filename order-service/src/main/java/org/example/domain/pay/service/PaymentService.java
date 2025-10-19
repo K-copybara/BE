@@ -288,4 +288,25 @@ public class PaymentService {
         return new ChargeResponse(cancelAmount, "결제 취소 성공");
     }
 
+    // 결제 취소 (orderId 기반)
+    public ChargeResponse cancelByOrderId(String orderId, CancelPaymentRequest request) throws IOException {
+        Orders order = ordersRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        TossPayment tossPayment = tossPaymentRepository.findByOrders(order)
+                .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+
+        String paymentKey = tossPayment.getTossPaymentKey();
+
+        // 내부적으로 Toss 결제 취소 호출
+        ChargeResponse response = cancelPayment(paymentKey, request);
+
+        // DB 상태 업데이트
+        order.cancel();
+        tossPayment.cancel(request.cancelReason());
+
+        return response;
+    }
+
+
 }
