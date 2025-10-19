@@ -10,6 +10,7 @@ import org.example.domain.order.dto.response.OrderHistoryResponse;
 import org.example.domain.order.dto.response.OrderSummary;
 import org.example.domain.order.repository.OrdersRepository;
 import org.example.domain.request.repository.OrderRequestRepository;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -24,6 +25,7 @@ public class OrderHistoryService {
     private final OrdersRepository ordersRepository;
     private final OrderRequestRepository orderRequestRepository;
     private final CustomerSessionValidator sessionValidator;
+    private final RedisTemplate<String, String> redisTemplate;
 
     //  고객 주문 내역 조회
     @Transactional
@@ -37,7 +39,6 @@ public class OrderHistoryService {
 
         // 요청사항 주문(결제 없는 주문) 조회
         List<OrderRequest> requestList = orderRequestRepository.findByStoreIdAndCustomerKey(storeId, customerKey);
-
         // Orders → OrderSummary 변환
         List<OrderSummary> orderSummaries = ordersList.stream()
                 .map(order -> OrderSummary.builder()
@@ -46,6 +47,7 @@ public class OrderHistoryService {
                         .requestNote(order.getRequestNote())
                         .status(order.getOrderStatus())
                         .createdAt(order.getCreatedAt())
+                        .reviewed("true".equals(redisTemplate.opsForValue().get("reviewed:" + order.getOrderId())))
                         .items(order.getOrderItems().stream()
                                 .map(item -> ItemDto.builder()
                                         .menuId(item.getMenuId())
