@@ -25,7 +25,15 @@ public class SseController {
             HttpServletResponse response
     ) {
         // SSE 전용 CORS 허용
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        String origin = response.getHeader("Origin");
+
+        // 개발용 & 배포용 도메인 모두 허용
+        String allowedOrigin = "https://tabletalk-copybara.netlify.app";
+        if ("http://localhost:3000".equals(origin)) {
+            allowedOrigin = "http://localhost:3000";
+        }
+
+        response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         return sseEmitterService.subscribe(storeId);
