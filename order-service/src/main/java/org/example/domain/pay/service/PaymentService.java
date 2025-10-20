@@ -289,6 +289,7 @@ public class PaymentService {
     }
 
     // 결제 취소 (orderId 기반)
+    @Transactional
     public ChargeResponse cancelByOrderId(String orderId, CancelPaymentRequest request) throws IOException {
         Orders order = ordersRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
