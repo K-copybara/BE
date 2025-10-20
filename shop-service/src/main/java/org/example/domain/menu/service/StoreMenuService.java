@@ -35,6 +35,8 @@ public class StoreMenuService {
     private final MenuCategoryRepository menuCategoryRepository;
     private final MenuEventProducer menuEventProducer;
     private final S3UploadService s3UploadService;
+    private static final String DEFAULT_MENU_IMAGE = "https://copybara-bucket-s3.s3.ap-northeast-2.amazonaws.com/b3184c52-b6b8-4872-8e6a-00906bd3186d.png";
+
 
     // 상점 메뉴 전체 조회
     @Transactional(readOnly = true)
@@ -118,7 +120,7 @@ public class StoreMenuService {
                 .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
 
         // 이미지 업로드 (임시 Mock URL)
-        String imageUrl = null;
+        String imageUrl = DEFAULT_MENU_IMAGE;
         try {
             if (image != null && !image.isEmpty()) {
                 imageUrl = s3UploadService.saveFile(image);
@@ -185,14 +187,24 @@ public class StoreMenuService {
 
         // 이미지 처리 로직
         if (requestDto.isRemoveImage()) {
-            if (menu.getMenuPicture() != null) {
-                s3UploadService.deleteImage(menu.getMenuPicture());
-                menu.removeImage();
+            String currentImage = menu.getMenuPicture();
+
+            //  기본 이미지가 아닐 때만 S3에서 삭제
+            if (currentImage != null && !currentImage.equals(DEFAULT_MENU_IMAGE)) {
+                s3UploadService.deleteImage(currentImage);
             }
+
+            // 기본 이미지로 교체
+            menu.changeImage(DEFAULT_MENU_IMAGE);
+
         } else if (image != null && !image.isEmpty()) {
-            if (menu.getMenuPicture() != null) {
-                s3UploadService.deleteImage(menu.getMenuPicture()); // 기존 이미지 삭제
+            String currentImage = menu.getMenuPicture();
+
+            // 기존 이미지가 있고, 기본 이미지가 아닐 때만 삭제
+            if (currentImage != null && !currentImage.equals(DEFAULT_MENU_IMAGE)) {
+                s3UploadService.deleteImage(currentImage);
             }
+
             try {
                 String newImageUrl = s3UploadService.saveFile(image);
                 menu.changeImage(newImageUrl);
@@ -222,8 +234,9 @@ public class StoreMenuService {
         }
 
         // 이미지 삭제 (현재는 Mock)
-        if (menu.getMenuPicture() != null) {
-            s3UploadService.deleteImage(menu.getMenuPicture());
+        String pictureUrl = menu.getMenuPicture();
+        if (pictureUrl != null && !pictureUrl.equals(DEFAULT_MENU_IMAGE)) {
+            s3UploadService.deleteImage(pictureUrl);
         }
 
         // AI 서버로 변경 사항 전송
