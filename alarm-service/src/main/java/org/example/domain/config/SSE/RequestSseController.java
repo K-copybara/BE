@@ -35,6 +35,8 @@ public class RequestSseController {
             allowedOrigin = "http://localhost:3000";
         } else if ("http://localhost:5173".equals(origin)) {
             allowedOrigin = "http://localhost:5173";
+        } else if ("https://tabletalk-manage.netlify.app".equals(origin)) {
+            allowedOrigin = "https://tabletalk-manage.netlify.app";
         }
 
         response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
