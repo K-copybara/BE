@@ -1,5 +1,6 @@
 package org.example.domain.config.SSE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.RequestCreatedEvent;
@@ -22,10 +23,11 @@ public class RequestSseController {
     @GetMapping(value = "/stream", produces = "text/event-stream;charset=UTF-8")
     public SseEmitter subscribe(
             @RequestParam Long storeId,
+            HttpServletRequest request,
             HttpServletResponse response
     ) {
         // SSE 전용 CORS 헤더 추가
-        String origin = response.getHeader("Origin");
+        String origin = request.getHeader("Origin");
 
         // 개발용 & 배포용 도메인 모두 허용
         String allowedOrigin = "https://tabletalk-copybara.netlify.app";
