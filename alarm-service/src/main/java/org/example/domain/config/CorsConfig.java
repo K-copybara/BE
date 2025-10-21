@@ -12,7 +12,8 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**") // 모든 경로 허용
                 .allowedOrigins(
                         "http://localhost:3000",
-                        "https://tabletalk-copybara.netlify.app"
+                        "https://tabletalk-copybara.netlify.app",
+                        "http://localhost:5173"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")

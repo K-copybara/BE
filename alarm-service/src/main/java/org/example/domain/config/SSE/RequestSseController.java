@@ -31,10 +31,16 @@ public class RequestSseController {
         String allowedOrigin = "https://tabletalk-copybara.netlify.app";
         if ("http://localhost:3000".equals(origin)) {
             allowedOrigin = "http://localhost:3000";
+        } else if ("http://localhost:5173".equals(origin)) {
+            allowedOrigin = "http://localhost:5173";
         }
 
         response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
         response.setHeader("Access-Control-Allow-Credentials", "true");
+
+        response.setHeader("Cache-Control", "no-cache");          // 캐싱 방지
+        response.setHeader("X-Accel-Buffering", "no");            // Nginx 버퍼링 방지
+        response.setHeader("Content-Type", "text/event-stream;charset=UTF-8"); // 명시적 설정
 
         return requestSseEmitterService.subscribe(storeId);
     }
