@@ -19,7 +19,7 @@ public class MerchantOrderController {
     // 사장 주문 내역 조회
     @GetMapping
     public Response<List<MerchantOrderSummaryDto>> getOrdersByStatus(
-            @RequestHeader("X-Store-Id") Long storeId,
+            @RequestParam Long storeId,
             @RequestParam(required = false) String status
     ) {
         OrderStatus orderStatus = (status != null)
