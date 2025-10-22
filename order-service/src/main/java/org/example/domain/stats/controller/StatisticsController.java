@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.domain.stats.dto.response.*;
 import org.example.domain.stats.service.StatisticsService;
 import org.example.dto.Response;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -18,8 +21,8 @@ public class StatisticsController {
     // 월별 일별 매출
     @GetMapping("/daily")
     public Response<List<DailySalesDto>> getDailySales(
-            @RequestParam("month") String month,
-            @RequestHeader("X-Store-Id") Long storeId
+            @RequestParam("storeId") Long storeId,
+            @RequestParam("month") String month
     ) {
         List<DailySalesDto> data = statisticsService.getDailySales(storeId, month);
         return Response.success("월별 일별 매출 조회 성공", data);
@@ -38,7 +41,7 @@ public class StatisticsController {
 
     // 일별 매출, 주문 건수
     @GetMapping("/daily/order")
-    public Response<DailySalesResponse> getDailyOrderSales(
+    public Response<DailySalesResponse> getDailySales(
             @RequestParam String date,
             @RequestParam(required = false) Long storeId // 나중에 토큰에서 추출 가능
     ) {
