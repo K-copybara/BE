@@ -69,4 +69,16 @@ public class StatisticsController {
         List<MenuSalesResponse> result = statisticsService.getMenuSales(date, sort, storeId);
         return Response.success("일별 메뉴 매출 조회 성공", result);
     }
+
+    // 최근 2주간 요청사항 조회
+    @GetMapping("/order-requests")
+    public Response<List<RequestNoteResponse>> getRecentOrderRequests(
+            @RequestParam(required = false) Long storeId
+    ) {
+        List<RequestNoteResponse> data = statisticsService.getRecentOrderRequests(storeId);
+        String message = data.isEmpty()
+                ? "최근 2주간 요청사항이 없습니다."
+                : "최근 2주간 요청사항 조회 성공";
+        return Response.success(message, data);
+    }
 }
