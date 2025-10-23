@@ -2,9 +2,11 @@ package org.example.domain.stats.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.domain.entity.OrderItem;
+import org.example.domain.entity.OrderRequest;
 import org.example.domain.entity.OrderStatus;
 import org.example.domain.entity.Orders;
 import org.example.domain.order.repository.OrdersRepository;
+import org.example.domain.request.repository.OrderRequestRepository;
 import org.example.domain.stats.dto.response.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class StatisticsService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final OrdersRepository ordersRepository;
+    private final OrderRequestRepository orderRequestRepository;
 
     // 월별 일별 매출
     @Transactional(readOnly = true)
@@ -206,5 +209,30 @@ public class StatisticsService {
         String key = "review:menu:" + menuId + ":avg";
         String value = redisTemplate.opsForValue().get(key);
         return (long) ((value != null) ? Double.parseDouble(value) : 0.0);
+    }
+
+
+    // 최근 2주 requestNote
+    @Transactional(readOnly = true)
+    public List<RequestNoteResponse> getRecentOrderRequests(Long storeId) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusWeeks(2);
+
+        List<OrderRequest> requests;
+
+        if (storeId != null) {
+            requests = orderRequestRepository.findByStoreIdAndCreatedAtBetweenOrderByCreatedAtDesc(
+                    storeId, startDate, endDate
+            );
+        } else {
+            requests = orderRequestRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(
+                    startDate, endDate
+            );
+        }
+
+        return requests.stream()
+                .filter(r -> r.getRequestNote() != null && !r.getRequestNote().isBlank())
+                .map(r -> new RequestNoteResponse(r.getRequestNote(), r.getCreatedAt()))
+                .toList();
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -18,4 +19,12 @@ public interface OrderRequestRepository extends JpaRepository<OrderRequest, Long
 
     // 요청시간 기준 내림차순
     List<OrderRequest> findAllByStoreIdOrderByCreatedAtDesc(Long storeId);
+
+    List<OrderRequest> findByCreatedAtBetweenOrderByCreatedAtDesc(
+            LocalDateTime start, LocalDateTime end
+    );
+
+    List<OrderRequest> findByStoreIdAndCreatedAtBetweenOrderByCreatedAtDesc(
+            Long storeId, LocalDateTime start, LocalDateTime end
+    );
 }
