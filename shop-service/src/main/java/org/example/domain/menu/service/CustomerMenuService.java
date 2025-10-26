@@ -36,6 +36,11 @@ public class CustomerMenuService {
             throw new IllegalArgumentException("해당 상점의 메뉴가 아닙니다.");
         }
 
+        // 품절 메뉴 접근 차단
+        if (!menu.getMenuStatus()) {
+            throw new IllegalArgumentException("현재 품절된 메뉴입니다.");
+        }
+
         // DTO 변환
         CustomerMenuDetailResponseDto dto = CustomerMenuDetailResponseDto.builder()
                 .menuId(menu.getId())
@@ -56,8 +61,8 @@ public class CustomerMenuService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("상점을 찾을 수 없습니다."));
 
-        // 해당 상점의 전체 메뉴 조회 (카테고리 순서 + 등록순)
-        List<Menu> menus = menuRepository.findByCategory_StoreOrderByCategory_OrderedIndexAscCreatedAtAsc(store);
+        // 해당 상점의 전체 메뉴 조회 (카테고리 순서 + 등록순+ 일시품절 제외)
+        List<Menu> menus = menuRepository.findByCategory_StoreAndMenuStatusTrueOrderByCategory_OrderedIndexAscCreatedAtAsc(store);
 
         // DTO 변환
         List<CustomerMenuListResponseDto> responseDtos = menus.stream()
