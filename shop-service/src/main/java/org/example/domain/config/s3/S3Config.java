@@ -1,10 +1,7 @@
 package org.example.domain.config.s3;
 
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Configuration
 public class S3Config {
 
@@ -28,26 +22,14 @@ public class S3Config {
 	private String region;
 
 	@Bean
-	public AmazonS3 amazonS3Client() {
-		log.info("🔑 AWS AccessKey (앞 4자리): {}", accessKey.substring(0, 4));
-		log.info("🌏 AWS Region: {}", region);
+	public AmazonS3Client amazonS3Client() {
+		//accessKey, secretKey, region 값으로 S3에 접근 가능한 객체 등록
+		BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 
-		// ✅ 환경변수보다 우선하도록 강제
-		System.setProperty("aws.accessKeyId", accessKey);
-		System.setProperty("aws.secretKey", secretKey);
-
-		BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
-
-		// ✅ virtual-hosted-style endpoint 강제 지정
-		AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-			.withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+		return (AmazonS3Client) AmazonS3ClientBuilder
+			.standard()
 			.withRegion(region)
+			.withCredentials(new AWSStaticCredentialsProvider(credentials))
 			.build();
-
-		// ✅ 실제 endpoint 테스트 (버킷명 포함)
-		String endpoint = String.format("https://%s.s3.%s.amazonaws.com/", "copybara-bucket-s3", region);
-		log.info("✅ S3 Client initialized successfully with endpoint: {}", endpoint);
-
-		return s3Client;
 	}
 }
