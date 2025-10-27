@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-service
+  namespace: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop-service
+  template:
+    metadata:
+      labels:
+        app: shop-service
+    spec:
+      containers:
+        - name: shop-service
+          image: tabletalk.kr.ncr.ntruss.com/shop-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: shop-config
+            - secretRef:
+                name: shop-secret
+            - secretRef:
+                name: kafka-secret
+          env:
+            - name: CUSTOM_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: JWT_SECRET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: CLOUD_AWS_CREDENTIALS_ACCESS_KEY
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: CLOUD_AWS_CREDENTIALS_SECRET_KEY
+            - name: AWS_REGION
+              value: "ap-northeast-2"
+          volumeMounts:
+            - name: kafka-ca-cert
+              mountPath: /etc/kafka/secrets
+              readOnly: true
+          resources:
+            requests:
+              cpu: 150m
+              memory: 156Mi
+            limits:
+              cpu: 300m
+              memory: 512Mi
+      imagePullSecrets:
+        - name: ncr-secret
+      volumes:
+        - name: kafka-ca-cert
+          secret:
+            secretName: kafka-cluster-cluster-ca-cert
+  revisionHistoryLimit: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-service
+  namespace: backend
+spec:
+  selector:
+    app: shop-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8082
+      nodePort: 30082
+  type: NodePort
