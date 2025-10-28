@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+</head>
+<body>
+<h3>💬 Chatbot Test</h3>
+<input id="msg" placeholder="메시지를 입력하세요" />
+<button onclick="sendMessage()">보내기</button>
+<pre id="output"></pre>
+
+<script>
+    const customerKey = "test-uuid-1";
+    const socket = new SockJS("/ws/chat");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+      console.log("✅ 연결 성공");
+      stompClient.subscribe("/topic/chat/" + customerKey, (res) => {
+        const msg = JSON.parse(res.body);
+        // ✅ 응답 필드명 content 사용
+        document.getElementById("output").innerText += "\n🤖 " + msg.content + " (" + msg.sentAt + ")";
+      });
+    });
+
+    function sendMessage() {
+      const text = document.getElementById("msg").value;
+      stompClient.send("/api/customer/chat.send", {}, JSON.stringify({
+        customerKey: customerKey,
+        role: "CUSTOMER",
+        content: text
+      }));
+      document.getElementById("output").innerText += "\n👤 " + text;
+      document.getElementById("msg").value = "";
+    }
+</script>
+</body>
+</html>
